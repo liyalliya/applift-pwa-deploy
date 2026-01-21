@@ -61,39 +61,67 @@ function MyApp({ Component, pageProps }) {
     // The app will handle back navigation via router
   }, []);
 
-  // Request fullscreen on app load (if running as PWA)
+  // Request fullscreen on every app load and persist preference
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const shouldRequestFullscreen = () =>
-      window.matchMedia('(display-mode: fullscreen)').matches ||
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.navigator.standalone === true;
-
     const requestFullscreen = async () => {
-      if (!shouldRequestFullscreen()) return; // avoid bothering normal browser sessions
       try {
-        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-          await document.documentElement.requestFullscreen();
+        // Check if user previously disabled fullscreen
+        const fullscreenDisabled = localStorage.getItem('fullscreen-disabled') === 'true';
+        if (fullscreenDisabled) return;
+
+        // Check if already in fullscreen
+        if (document.fullscreenElement) return;
+        
+        // Check if fullscreen API is available
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+          localStorage.setItem('fullscreen-enabled', 'true');
+        } else if (docEl.webkitRequestFullscreen) {
+          await docEl.webkitRequestFullscreen();
+          localStorage.setItem('fullscreen-enabled', 'true');
+        } else if (docEl.mozRequestFullScreen) {
+          await docEl.mozRequestFullScreen();
+          localStorage.setItem('fullscreen-enabled', 'true');
+        } else if (docEl.msRequestFullscreen) {
+          await docEl.msRequestFullscreen();
+          localStorage.setItem('fullscreen-enabled', 'true');
         }
       } catch (err) {
-        console.log('Fullscreen request failed (may be normal):', err.message);
+        // Silently fail - some browsers/contexts don't allow fullscreen
+        console.log('Fullscreen:', err.message);
       }
     };
 
-    // Request fullscreen on first user interaction (required by browsers)
+    // Attempt fullscreen on every app start if previously enabled
+    const previouslyEnabled = localStorage.getItem('fullscreen-enabled') === 'true';
+    
     const handleUserInteraction = () => {
       requestFullscreen();
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction, { capture: true });
+      document.removeEventListener('touchstart', handleUserInteraction, { capture: true });
     };
 
-    document.addEventListener('click', handleUserInteraction);
-    document.addEventListener('touchstart', handleUserInteraction);
+    // If previously enabled, try immediately on visibility change
+    if (previouslyEnabled) {
+      const handleVisibilityChange = () => {
+        if (!document.hidden && !document.fullscreenElement) {
+          requestFullscreen();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    // Always listen for first interaction on fresh load
+    document.addEventListener('click', handleUserInteraction, { capture: true });
+    document.addEventListener('touchstart', handleUserInteraction, { capture: true });
 
     return () => {
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction, { capture: true });
+      document.removeEventListener('touchstart', handleUserInteraction, { capture: true });
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
