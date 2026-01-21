@@ -63,9 +63,15 @@ function MyApp({ Component, pageProps }) {
 
   // Request fullscreen on app load (if running as PWA)
   useEffect(() => {
-    if (typeof window === 'undefined' || !document.fullscreenElement) return;
-    
+    if (typeof window === 'undefined') return;
+
+    const shouldRequestFullscreen = () =>
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+
     const requestFullscreen = async () => {
+      if (!shouldRequestFullscreen()) return; // avoid bothering normal browser sessions
       try {
         if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
           await document.documentElement.requestFullscreen();
@@ -74,17 +80,17 @@ function MyApp({ Component, pageProps }) {
         console.log('Fullscreen request failed (may be normal):', err.message);
       }
     };
-    
-    // Request fullscreen on user interaction
+
+    // Request fullscreen on first user interaction (required by browsers)
     const handleUserInteraction = () => {
       requestFullscreen();
       document.removeEventListener('click', handleUserInteraction);
       document.removeEventListener('touchstart', handleUserInteraction);
     };
-    
+
     document.addEventListener('click', handleUserInteraction);
     document.addEventListener('touchstart', handleUserInteraction);
-    
+
     return () => {
       document.removeEventListener('click', handleUserInteraction);
       document.removeEventListener('touchstart', handleUserInteraction);
