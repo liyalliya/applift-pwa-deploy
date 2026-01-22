@@ -408,18 +408,6 @@ export default function Workouts() {
                   <p className="text-base text-white/70 font-medium">
                     {connected ? 'Scan equipment to start!' : 'Connect to your device'}
                   </p>
-                  {connected && (
-                    <button
-                      onClick={() => setShowEquipmentModal(true)}
-                      className={`px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-300 ${
-                        connected
-                          ? 'bg-[#7C3AED] hover:bg-[#8B5CF6] text-white shadow-lg shadow-purple-900/30'
-                          : 'bg-gray-700/80 hover:bg-gray-600 text-white/80 shadow-lg shadow-black/20'
-                      }`}
-                    >
-                      Enter manually
-                    </button>
-                  )}
                 </div>
               </div>
             )}

@@ -107,6 +107,15 @@ export default function Splash() {
       return
     }
 
+    const fromSignOut = router.query?.fromSignOut === '1'
+
+    // If coming from sign-out, always show splash and reset the flag
+    if (fromSignOut) {
+      sessionStorage.removeItem('applift-appmode-splash-seen')
+      setHideSplashForAppMode(false)
+      return
+    }
+
     const seen = sessionStorage.getItem('applift-appmode-splash-seen')
     if (seen) {
       setHideSplashForAppMode(true)
@@ -116,7 +125,7 @@ export default function Splash() {
 
     sessionStorage.setItem('applift-appmode-splash-seen', 'true')
     setHideSplashForAppMode(false)
-  }, [isAppMode, router])
+  }, [isAppMode, router, router.query?.fromSignOut])
 
   // Handle back button - go to previous slide on splash page
   useEffect(() => {

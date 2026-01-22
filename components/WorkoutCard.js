@@ -7,9 +7,9 @@ export default function WorkoutCard({ workout }) {
   // Map equipment to background color
   const getEquipmentColor = (equipment) => {
     const colorMap = {
-      'Barbell': '#fbbf24', // yellow
-      'Dumbbell': '#3b82f6', // blue
-      'Weight Stack': '#f97316', // orange
+      'Barbell': '#f0b233', // gold
+      'Dumbbell': '#3B82F6', // blue
+      'Weight Stack': '#F97316', // orange
     };
     return colorMap[equipment] || '#7c3aed'; // default to purple
   };
@@ -26,17 +26,21 @@ export default function WorkoutCard({ workout }) {
       onClick={handleClick}
     >
       <div 
-        className="w-10 h-10 flex items-center justify-center flex-shrink-0 rounded-xl text-white"
+        className="w-14 h-14 flex items-center justify-center flex-shrink-0 rounded-[14px] text-white"
         style={{ backgroundColor: getEquipmentColor(workout.equipment) }}
       >
-        <EquipmentIcon type={workout.equipment} className="w-6 h-6" />
+        <EquipmentIcon type={workout.equipment} className="w-8 h-6" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-white truncate">{workout.exercise}</div>
         <div className="text-xs text-white/70 mt-0.5 truncate">{workout.weight} kg · {workout.reps} reps</div>
       </div>
       <div className="text-white/40">
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7l-7 7"/></svg>
+        <img 
+          src="/images/icons/arrow-point-to-right.png" 
+          alt="" 
+          className="w-4 h-4 opacity-40"
+        />
       </div>
     </div>
   );

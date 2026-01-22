@@ -92,46 +92,90 @@ export default function EquipmentSelectionModal({ isOpen, onClose, onSelect, con
         backgroundColor: 'rgba(0, 0, 0, 0.75)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
+        animation: 'modalBackdropFadeIn 400ms ease-out forwards',
       }}
       onClick={onClose}
     >
       <div 
-        className="relative max-w-md w-full p-6 rounded-3xl bg-black/60 border border-white/10"
+        className="relative max-w-md w-full p-8 rounded-[28px] bg-[#1c1c1e] border border-white/10"
         style={{
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
+          animation: 'modalContentScaleUp 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+          opacity: 0,
+          transform: 'scale(0.9) translateY(20px)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-colors"
+          className="absolute top-5 right-5 flex h-8 w-8 items-center justify-center rounded-full bg-white/8 text-white/70 hover:bg-white/12 hover:text-white transition-all duration-200"
           aria-label="Close"
+          style={{ 
+            animation: 'modalElementSlideIn 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            animationDelay: '100ms',
+            opacity: 0,
+            transform: 'translateY(10px)',
+          }}
         >
-          ✕
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
         </button>
 
-        <h2 className="text-xl font-bold text-white mb-6">Select Equipment</h2>
+        <div className="mb-7">
+          <h2 
+            className="text-2xl font-bold text-white mb-2" 
+            style={{ 
+              animation: 'modalElementSlideIn 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              animationDelay: '150ms',
+              opacity: 0,
+              transform: 'translateY(10px)',
+            }}
+          >
+            Select Equipment
+          </h2>
+          <p 
+            className="text-sm text-white/60 leading-relaxed" 
+            style={{ 
+              animation: 'modalElementSlideIn 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              animationDelay: '200ms',
+              opacity: 0,
+              transform: 'translateY(10px)',
+            }}
+          >
+            If the device can't read the NFC tag, manually select your equipment below.
+          </p>
+        </div>
 
         <div className="space-y-3">
-          {equipmentOptions.map((equipment) => {
+          {equipmentOptions.map((equipment, idx) => {
             const colors = getEquipmentColors(equipment.type);
             return (
               <button
                 key={equipment.type}
                 onClick={() => handleSelect(equipment.type)}
-                className={`w-full p-4 rounded-2xl transition-all duration-300 hover:scale-102 flex items-center gap-4 ${colors.outerBg} border ${colors.outerBorder}`}
+                className={`w-full p-4 rounded-[20px] transition-all duration-200 active:scale-[0.98] flex items-center gap-4 ${colors.outerBg} border ${colors.outerBorder} hover:brightness-110`}
                 style={{
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                  animation: 'modalElementSlideIn 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                  animationDelay: `${280 + idx * 100}ms`,
+                  opacity: 0,
+                  transform: 'translateY(15px)',
                 }}
               >
-                <div className={`flex h-16 w-16 items-center justify-center rounded-xl p-2 ${colors.innerBg} border ${colors.innerBorder}`}>
+                <div className={`flex h-16 w-16 items-center justify-center rounded-[16px] p-2 ${colors.innerBg} border ${colors.innerBorder} shadow-inner`}>
                   <EquipmentIcon type={equipment.type} className="w-16 h-15" />
                 </div>
-                <div className="text-left">
-                  <div className="text-white font-semibold text-lg">{equipment.type}</div>
+                <div className="text-left flex-1">
+                  <div className="text-white font-semibold text-lg tracking-tight">{equipment.type}</div>
                 </div>
+                <img 
+                  src="/images/icons/arrow-point-to-right.png" 
+                  alt="" 
+                  className="w-5 h-5 opacity-40"
+                />
               </button>
             );
           })}

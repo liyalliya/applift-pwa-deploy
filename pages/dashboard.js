@@ -10,6 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useUserProfile } from '../utils/userProfileStore';
 import ActivityOverview from '../components/ActivityOverview';
 import { useBluetooth } from '../context/BluetoothProvider';
+import { shouldUseAppMode } from '../utils/pwaInstalled';
 
 export default function Dashboard() {
   const { profile } = useUserProfile();
@@ -32,28 +33,38 @@ export default function Dashboard() {
     setPairMessage,
   } = useBluetooth();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
   const profileRef = useRef(null);
 
   // Handle sign out
-  const handleSignOut = () => {
-    // Clear user profile and auth from local storage
+  const handleSignOutConfirm = () => {
+    let isAppMode = false;
+
+    // Clear user profile and auth from storage
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.removeItem('userProfile');
         window.localStorage.removeItem('authToken');
         window.localStorage.removeItem('scannedEquipment');
+        // Reset splash gating so PWA shows the splash slides again on sign-out
+        window.sessionStorage.removeItem('applift-appmode-splash-seen');
+        isAppMode = shouldUseAppMode();
       } catch (e) {
         console.error('Failed to clear storage:', e);
       }
     }
     
-    // Close profile menu
+    // Close menus/modals
     setProfileOpen(false);
+    setShowSignOutModal(false);
     
-    // Use replace to avoid going back to dashboard
-    setTimeout(() => {
-      router.replace('/splash?slide=3');
-    }, 100);
+    // Redirect to splash final slide; mark origin so splash won't auto-redirect back
+    const target = '/splash?slide=3&fromSignOut=1';
+    if (isAppMode && typeof window !== 'undefined') {
+      window.location.replace(target);
+    } else {
+      router.replace(target);
+    }
   };
 
   // close profile menu on outside click
@@ -442,20 +453,25 @@ export default function Dashboard() {
                 {/* Dropdown menu */}
                 {profileOpen && (
                   <div
-                    className="absolute top-14 left-0 z-50 min-w-[180px] rounded-2xl bg-black/80 border border-white/10 shadow-lg"
+                    className="absolute top-14 left-0 z-50 min-w-[180px] rounded-2xl bg-[#1f1f2a] border border-white/15 shadow-2xl modal-content-fade-in"
                     style={{
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
+                      backdropFilter: 'blur(14px)',
+                      WebkitBackdropFilter: 'blur(14px)',
                     }}
                   >
                     <button
                       onClick={() => {
                         setProfileOpen(false);
-                        handleSignOut();
+                        setShowSignOutModal(true);
                       }}
-                      className="w-full px-4 py-3 text-left text-white/90 hover:text-white hover:bg-white/10 transition-colors rounded-2xl text-sm font-medium first:rounded-t-2xl last:rounded-b-2xl"
+                      className="w-full px-4 py-3 text-left text-red-400 hover:text-red-300 hover:bg-white/8 transition-colors rounded-2xl text-sm font-semibold first:rounded-t-2xl last:rounded-b-2xl flex items-center justify-between"
                     >
-                      Sign out
+                      <span>Sign out</span>
+                      <img
+                        src="/images/icons/signout-icon.png"
+                        alt=""
+                        className="w-4 h-4 opacity-90"
+                      />
                     </button>
                   </div>
                 )}
@@ -641,6 +657,48 @@ export default function Dashboard() {
           <button onClick={handleDisconnect} className="px-4 py-2 rounded-md bg-white/6 text-white border border-white/10" aria-label="Disconnect device">Disconnect</button>
         ) : null}
       </div>
+
+      {/* Sign-out confirmation modal */}
+      {showSignOutModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 modal-fade-in"
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+          }}
+          onClick={() => setShowSignOutModal(false)}
+        >
+          <div
+            className="relative max-w-sm w-full p-6 rounded-3xl bg-[#1f1f2a] border border-white/15 shadow-2xl modal-content-fade-in"
+            style={{
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-white mb-2">Sign out?</h3>
+            <p className="text-sm text-white/70 mb-6">You will return to the splash screen.</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowSignOutModal(false)}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium transition-colors modal-element-fade-in"
+                style={{ animationDelay: '50ms' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSignOutConfirm}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white font-semibold transition-colors shadow-lg shadow-red-900/30 modal-element-fade-in"
+                style={{ animationDelay: '120ms' }}
+              >
+                Yes, sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -258,6 +258,73 @@ svg { color: inherit; fill: currentColor; }
   animation: contentFadeUp 420ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
+/* Modal animations */
+.modal-fade-in {
+  animation: modalBackdropFadeIn 300ms ease-out forwards;
+}
+
+.modal-content-fade-in {
+  animation: modalContentFadeUp 400ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.modal-element-fade-in {
+  animation: modalElementFadeUp 400ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes modalBackdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes modalContentFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalElementFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced modal animations with scale */
+@keyframes modalContentScaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalElementSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Initial state before animation - prevents layout jump */
 .content-fade-up-1,
 .content-fade-up-2,
