@@ -8,10 +8,16 @@ export default function ConnectPill({
   onDisconnect, 
   scanning, 
   devicesFound = [],
-  availability 
+  availability,
+  collapse = 0
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const pillRef = useRef(null);
+  
+  // Calculate dimensions based on collapse progress
+  const pillWidth = collapse === 0 ? 'w-full max-w-sm' : 'w-14';
+  const textOpacity = Math.max(0, 1 - collapse * 1.5); // Fade out text early
+  const containerMaxWidth = collapse === 0 ? '100%' : '56px';
 
   // Close on outside click
   useEffect(() => {
@@ -62,12 +68,18 @@ export default function ConnectPill({
       {/* Pill - stays in place, expands like accordion */}
       <div 
         ref={pillRef}
-        className={`relative w-full max-w-sm overflow-hidden border shadow-lg transition-all duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`relative overflow-hidden border shadow-lg transition-all duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isExpanded 
-            ? 'z-[10000] rounded-[24px] px-6 py-6' 
-            : 'z-50 rounded-[32px] px-5 py-3'
+            ? 'z-[10000] rounded-[24px] px-6 py-6 w-full max-w-sm' 
+            : 'z-50 rounded-[32px] py-3'
         }`}
         style={{
+          width: collapse > 0 ? '56px' : isExpanded ? '100%' : '100%',
+          maxWidth: collapse > 0 ? '56px' : isExpanded ? '28rem' : '28rem',
+          paddingLeft: collapse > 0 || isExpanded ? 'auto' : '20px',
+          paddingRight: collapse > 0 || isExpanded ? 'auto' : '20px',
+          paddingLeft: isExpanded ? '24px' : collapse > 0 ? '12px' : '20px',
+          paddingRight: isExpanded ? '24px' : collapse > 0 ? '12px' : '20px',
           maxHeight: isExpanded ? '520px' : '88px',
           background: connected
             ? 'radial-gradient(circle, rgb(141, 184, 11) 0%, rgb(56, 139, 42) 50%, rgb(59, 105, 2) 100%)'
@@ -76,26 +88,27 @@ export default function ConnectPill({
           boxShadow: connected
             ? '0 18px 50px rgba(16, 185, 129, 0.25)'
             : '0 14px 40px rgba(0, 0, 0, 0.25)',
-          transition: 'max-height 600ms ease, padding 400ms ease, border-radius 400ms ease, background 800ms ease-in-out, border-color 800ms ease-in-out, box-shadow 800ms ease-in-out',
+          transition: isExpanded || collapse > 0 ? 'max-height 600ms ease, padding 400ms ease, border-radius 400ms ease, background 800ms ease-in-out, border-color 800ms ease-in-out, box-shadow 800ms ease-in-out, width 600ms ease, max-width 600ms ease' : 'max-height 600ms ease, padding 400ms ease, border-radius 400ms ease, background 800ms ease-in-out, border-color 800ms ease-in-out, box-shadow 800ms ease-in-out',
           animation: connected ? 'shimmer 12s linear infinite' : 'none',
           backgroundSize: connected ? '150% 100%' : '100% 100%',
           backgroundPosition: 'left center'
         }}
       >
-        {!isExpanded ? (
+        {!isExpanded && collapse < 1 ? (
           // Collapsed Pill View
           <button 
             onClick={() => setIsExpanded(true)}
             className="flex flex-1 items-center gap-3 w-full cursor-pointer active:scale-98 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{ opacity: collapse === 0 ? 1 : 0 }}
           >
-            <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ${
+            <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 flex-shrink-0 ${
               connected ? 'bg-white/20' : 'bg-gray-600/40'
             }`}>
               <svg width="22" height="22" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path fill="#ffffff" d="m9.41 0l6 6l-4 4l4 4l-6 6H9v-7.59l-3.3 3.3l-1.4-1.42L8.58 10l-4.3-4.3L5.7 4.3L9 7.58V0h.41zM11 4.41V7.6L12.59 6L11 4.41zM12.59 14L11 12.41v3.18L12.59 14z"/>
               </svg>
             </div>
-            <div className="flex flex-col leading-tight items-start">
+            <div className="flex flex-col leading-tight items-start" style={{ opacity: textOpacity }}>
               <span className="text-xs font-medium tracking-tight text-white">
                 Your Device is
               </span>
@@ -103,6 +116,21 @@ export default function ConnectPill({
                 {connected ? 'Connected' : 'Not Connected'}
               </span>
             </div>
+          </button>
+        ) : collapse >= 1 ? (
+          // Fully Collapsed - Icon Only
+          <button 
+            onClick={() => setIsExpanded(true)}
+            className="flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 cursor-pointer"
+            style={{
+              background: 'transparent',
+              margin: '0 auto'
+            }}
+            aria-label="Bluetooth"
+          >
+            <svg width="22" height="22" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <path fill="#ffffff" d="m9.41 0l6 6l-4 4l4 4l-6 6H9v-7.59l-3.3 3.3l-1.4-1.42L8.58 10l-4.3-4.3L5.7 4.3L9 7.58V0h.41zM11 4.41V7.6L12.59 6L11 4.41zM12.59 14L11 12.41v3.18L12.59 14z"/>
+            </svg>
           </button>
         ) : (
           // Expanded Modal View
