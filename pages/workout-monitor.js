@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AccelerationChart from '../components/workoutMonitor/AccelerationChart';
 import WorkoutNotification from '../components/workoutMonitor/WorkoutNotification';
+import WorkoutFinishedModal from '../components/workoutMonitor/WorkoutFinishedModal';
 import ConnectPill from '../components/ConnectPill';
 import { useBluetooth } from '../context/BluetoothProvider';
 import { KalmanFilter } from '../utils/KalmanFilter';
@@ -14,6 +15,42 @@ const MAX_CHART_POINTS = 100; // Last 5 seconds at 20Hz
 export default function WorkoutMonitor() {
   const router = useRouter();
   const { equipment, workout } = router.query;
+  
+  // Helper function to get the correct background image based on equipment and workout
+  const getWorkoutImage = () => {
+    if (!equipment || !workout) return null;
+    
+    const equipmentLower = equipment.toLowerCase();
+    const workoutLower = workout.toLowerCase();
+    
+    // Map equipment and workout to actual image filenames
+    if (equipmentLower.includes('barbell')) {
+      if (workoutLower.includes('bench') || workoutLower.includes('press')) {
+        return '/images/workout-cards/barbell-flat-bench-press.jpg';
+      } else if (workoutLower.includes('squat')) {
+        return '/images/workout-cards/barbell-front-squats.jpg';
+      }
+      return '/images/workout-cards/barbell-comingsoon.jpg';
+    } else if (equipmentLower.includes('dumbbell') || equipmentLower.includes('dumbell')) {
+      if (workoutLower.includes('curl')) {
+        return '/images/workout-cards/dumbell-concentration-curls.jpg';
+      } else if (workoutLower.includes('extension') || workoutLower.includes('tricep')) {
+        return '/images/workout-cards/dumbell-overhead-extension.jpg';
+      }
+      return '/images/workout-cards/dumbell-comingsoon.jpg';
+    } else if (equipmentLower.includes('weight stack') || equipmentLower.includes('weightstack') || equipmentLower.includes('cable')) {
+      if (workoutLower.includes('pulldown') || workoutLower.includes('lat')) {
+        return '/images/workout-cards/weightstack-lateral-pulldown.jpg';
+      } else if (workoutLower.includes('leg') && workoutLower.includes('extension')) {
+        return '/images/workout-cards/weightstack-seated-leg-extension.jpg';
+      }
+      return '/images/workout-cards/weightstack-comingsoon.jpg';
+    }
+    
+    // Default fallback
+    return '/images/workout-cards/barbell-comingsoon.jpg';
+  };
+  
   const {
     connected,
     device,
@@ -41,6 +78,14 @@ export default function WorkoutMonitor() {
   
   // Congratulations modal
   const [showCongrats, setShowCongrats] = useState(false);
+  
+  // Workout stats tracking across all sets
+  const [workoutStats, setWorkoutStats] = useState({
+    totalReps: 0,
+    allRepDurations: [],
+    completedSets: 0,
+    totalTime: 0
+  });
   
   // Timer state
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -207,6 +252,17 @@ export default function WorkoutMonitor() {
   useEffect(() => {
     if (isRecording && !isPaused && !countdownActive && !isOnBreak) {
       if (repStats.repCount >= recommendedReps && repStats.repCount > 0) {
+        // Track stats for this completed set
+        const currentRepData = repCounterRef.current.exportData();
+        const repDurations = currentRepData.reps.map(rep => rep.duration);
+        
+        setWorkoutStats(prev => ({
+          totalReps: prev.totalReps + repStats.repCount,
+          allRepDurations: [...prev.allRepDurations, ...repDurations],
+          completedSets: prev.completedSets + 1,
+          totalTime: prev.totalTime + elapsedTime
+        }));
+        
         // Set complete - trigger break or congratulations
         if (currentSet >= recommendedSets) {
           // Last set complete - show congratulations
@@ -271,7 +327,7 @@ export default function WorkoutMonitor() {
     setFilteredAccelData([]);
     setSampleCount(0);
     setElapsedTime(0);
-    setCurrentSet(1); // Reset sets
+    // Don't reset currentSet here - only reset when truly starting fresh
     
     // Show countdown overlay
     setShowCountdown(true);
@@ -306,6 +362,7 @@ export default function WorkoutMonitor() {
     
     // Reset for next session
     setCurrentSet(1);
+    setWorkoutStats({ totalReps: 0, allRepDurations: [], completedSets: 0, totalTime: 0 });
     repCounterRef.current.reset();
     setRepStats(repCounterRef.current.getStats());
   };
@@ -394,7 +451,7 @@ export default function WorkoutMonitor() {
 
       {/* Countdown Overlay */}
       {showCountdown && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
           <div className="text-9xl font-bold text-white animate-pulse">
             {countdownValue}
           </div>
@@ -403,7 +460,7 @@ export default function WorkoutMonitor() {
 
       {/* Break Overlay */}
       {isOnBreak && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
           <div className="flex flex-col items-center gap-8">
             <div className="text-3xl font-bold text-white text-center">
               Current set done!
@@ -471,63 +528,44 @@ export default function WorkoutMonitor() {
         </div>
       )}
 
-      {/* Congratulations Modal */}
-      {showCongrats && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 px-4">
-          <div className="rounded-3xl p-8 max-w-md w-full text-center" style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
-          }}>
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-4xl font-bold text-white mb-4">Congratulations!</h2>
-            <p className="text-xl text-white/80 mb-6">
-              You completed {recommendedSets} sets of {recommendedReps} reps!
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowCongrats(false);
-                  if (rawDataLog.current.length > 0) {
-                    const shouldExport = confirm(`Download workout data CSV?`);
-                    if (shouldExport) {
-                      exportToCSV();
-                    }
-                  }
-                  router.back();
-                }}
-                className="flex-1 px-6 py-3 rounded-full font-bold text-white text-lg transition-all"
-                style={{
-                  background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
-                  boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
-                }}
-              >
-                Finish
-              </button>
-              <button
-                onClick={() => {
-                  // Reset for another round
-                  setShowCongrats(false);
-                  setCurrentSet(1);
-                  repCounterRef.current.reset();
-                  setRepStats(repCounterRef.current.getStats());
-                  setTimeData([]);
-                  setRawAccelData([]);
-                  setFilteredAccelData([]);
-                  recordingStartTime.current = 0;
-                  rawDataLog.current = [];
-                  setElapsedTime(0);
-                }}
-                className="flex-1 px-6 py-3 rounded-full font-bold text-white text-lg transition-all border-2 border-white/30 hover:border-white/50"
-              >
-                Do Another
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Workout Finished Modal */}
+      <WorkoutFinishedModal
+        show={showCongrats}
+        workoutName={workout}
+        equipment={equipment}
+        backgroundImage={getWorkoutImage()}
+        stats={{
+          totalReps: workoutStats.totalReps,
+          totalTime: workoutStats.totalTime,
+          averageConsistency: workoutStats.allRepDurations.length > 0
+            ? Math.round(
+                (1 - (Math.max(...workoutStats.allRepDurations) - Math.min(...workoutStats.allRepDurations)) / 
+                Math.max(...workoutStats.allRepDurations)) * 100
+              )
+            : 85,
+          tempoMessage: workoutStats.allRepDurations.length > 0 && 
+                       Math.round((1 - (Math.max(...workoutStats.allRepDurations) - Math.min(...workoutStats.allRepDurations)) / Math.max(...workoutStats.allRepDurations)) * 100) >= 80
+            ? "Your reps stayed steady and controlled."
+            : "Keep working on maintaining consistent tempo.",
+          averageLoad: null, // Backend integration needed
+          progressMessage: null // Backend comparison needed
+        }}
+        onExport={exportToCSV}
+        onClose={() => setShowCongrats(false)}
+        onDoAnother={() => {
+          setShowCongrats(false);
+          setCurrentSet(1);
+          setWorkoutStats({ totalReps: 0, allRepDurations: [], completedSets: 0, totalTime: 0 });
+          repCounterRef.current.reset();
+          setRepStats(repCounterRef.current.getStats());
+          setTimeData([]);
+          setRawAccelData([]);
+          setFilteredAccelData([]);
+          recordingStartTime.current = 0;
+          rawDataLog.current = [];
+          setElapsedTime(0);
+        }}
+      />
 
       {/* Rep Notification */}
       <WorkoutNotification 
