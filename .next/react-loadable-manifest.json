@@ -1,1 +1,9 @@
-{}
+{
+  "components\\workoutMonitor\\AccelerationChart.js -> chart.js/auto": {
+    "id": 9085,
+    "files": [
+      "static/chunks/ee8b1517.7dd908e1b2e06e99.js",
+      "static/chunks/78.8bdf1eb950f52ebb.js"
+    ]
+  }
+}

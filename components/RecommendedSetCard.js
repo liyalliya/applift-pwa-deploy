@@ -208,7 +208,7 @@ export default function RecommendedSetCard({
       </div>
 
       {/* Subtext */}
-      <p className="text-xs text-center text-white/50">Swipe right for custom set</p>
+      <p className="text-xs text-center text-white/10">Swipe right for custom set</p>
     </div>
   );
 }

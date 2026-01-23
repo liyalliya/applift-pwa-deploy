@@ -162,66 +162,62 @@ export default function SelectedWorkout() {
           />
         </div>
 
-        {/* Exercise Information */}
-        <div className="content-fade-up-2 space-y-3" style={{ animationDelay: '0.1s' }}>
-          <div className="rounded-2xl bg-white/5 p-4 border border-white/10 space-y-3">
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2">About This Exercise</h3>
-              <p className="text-xs text-white/70 leading-relaxed">{details.description}</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2">Form Tips</h3>
-              <ul className="text-xs text-white/70 space-y-1 list-disc list-inside">
-                <li>Keep your core tight throughout the movement</li>
-                <li>Control the weight on the way down</li>
-                <li>Maintain steady breathing rhythm</li>
-              </ul>
-            </div>
+        {/* Target Muscles - Separate Container */}
+        <div className="content-fade-up-2 rounded-2xl bg-white/5 p-4 border border-white/10 flex items-center gap-3" style={{ animationDelay: '0.1s' }}>
+          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
           </div>
-
-          {/* Target Muscles - Separate Container */}
-          <div className="rounded-2xl bg-white/5 p-4 border border-white/10 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-white mb-1">Target Muscles</h3>
-              <p className="text-xs text-white/70">
-                {equipment === 'Barbell' && workout === 'Flat Bench Barbell Press'
-                  ? 'Chest, Shoulders, Triceps'
-                  : equipment === 'Barbell' && workout === 'Front Squats'
-                  ? 'Quadriceps, Core, Lower Back'
-                  : equipment === 'Dumbell' && workout === 'Concentration Curls'
-                  ? 'Biceps'
-                  : equipment === 'Dumbell' && workout === 'Single-arm Overhead Extension'
-                  ? 'Triceps, Shoulders'
-                  : equipment === 'Weight Stack' && workout === 'Lateral Pulldown'
-                  ? 'Back, Lats'
-                  : 'Quadriceps'}
-              </p>
-            </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-white mb-1">Target Muscles</h3>
+            <p className="text-xs text-white/70">
+              {equipment === 'Barbell' && workout === 'Flat Bench Barbell Press'
+                ? 'Chest, Shoulders, Triceps'
+                : equipment === 'Barbell' && workout === 'Front Squats'
+                ? 'Quadriceps, Core, Lower Back'
+                : equipment === 'Dumbell' && workout === 'Concentration Curls'
+                ? 'Biceps'
+                : equipment === 'Dumbell' && workout === 'Single-arm Overhead Extension'
+                ? 'Triceps, Shoulders'
+                : equipment === 'Weight Stack' && workout === 'Lateral Pulldown'
+                ? 'Back, Lats'
+                : 'Quadriceps'}
+            </p>
           </div>
         </div>
 
-        {/* Watch Tutorial Button */}
-        {details.tutorialVideo && (
-          <div className="content-fade-up-2 flex justify-center" style={{ animationDelay: '0.15s' }}>
+        {/* Exercise Information - No Container */}
+        <div className="content-fade-up-2 space-y-3" style={{ animationDelay: '0.15s' }}>
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-2">About This Exercise</h3>
+            <p className="text-xs text-white/70 leading-relaxed">{details.description}</p>
+          </div>
+          
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-2">Form Tips</h3>
+            <ul className="text-xs text-white/70 space-y-1 list-disc list-inside">
+              <li>Keep your core tight throughout the movement</li>
+              <li>Control the weight on the way down</li>
+              <li>Maintain steady breathing rhythm</li>
+            </ul>
+          </div>
+
+          {/* Watch Tutorial Button */}
+          {details.tutorialVideo && (
             <a
               href={details.tutorialVideo}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-white/60 hover:text-white/80 transition-colors flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/20 hover:border-white/40"
+              className="text-xs text-white/60 hover:text-white/80 transition-colors flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/20 hover:border-white/40 w-fit"
             >
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z"/>
               </svg>
               Watch Tutorial
             </a>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Warm Up Banner */}
         <div className="content-fade-up-3 mb-20" style={{ animationDelay: '0.2s' }}>
@@ -236,8 +232,11 @@ export default function SelectedWorkout() {
         <div className="mx-auto w-full max-w-[640px]">
           <WorkoutActionButton
             onClick={() => {
-              // Handle workout start
-              console.log('Starting workout...');
+              // Navigate to workout monitor with workout context
+              router.push({
+                pathname: '/workout-monitor',
+                query: { equipment, workout }
+              });
             }}
           />
         </div>
