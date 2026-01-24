@@ -299,9 +299,9 @@ export default function Workouts() {
         <title>Workouts — AppLift</title>
       </Head>
 
-      <main className="mx-auto w-full max-w-[640px] px-4 pt-10 sm:pt-10 space-y-6">
+      <main className="mx-auto w-full max-w-4xl px-3 sm:px-4 md:px-6 pt-6 sm:pt-8 md:pt-10 space-y-4 sm:space-y-5 md:space-y-6">
         {/* Connection status pill */}
-        <div className="flex justify-center content-fade-up-1">
+        <div className="flex justify-center content-fade-up-1 px-1 sm:px-0">
           <ConnectPill 
             connected={connected}
             device={device}
@@ -317,7 +317,7 @@ export default function Workouts() {
         {/* Scan equipment card */}
         <div className={`flex justify-center ${scannedEquipment ? 'content-fade-up-3' : 'content-fade-up-2'}`} key={scannedEquipment ? scannedEquipment.type : 'no-equipment'}>
           <section
-            className={`relative w-full max-w-sm rounded-3xl p-4 space-y-3 transition-colors duration-300 ease-out ${
+            className={`relative w-full max-w-md rounded-3xl p-3 sm:p-4 space-y-3 transition-colors duration-300 ease-out ${
               scannedEquipment && connected
                 ? scannedEquipment.type === 'Barbell' || scannedEquipment.type === 'Dumbell' || scannedEquipment.type === 'Weight Stack'
                   ? `${getEquipmentColors(scannedEquipment.type).outerBg} border ${getEquipmentColors(scannedEquipment.type).outerBorder} shadow-lg ${getEquipmentColors(scannedEquipment.type).outerShadow}`
@@ -422,23 +422,23 @@ export default function Workouts() {
 
         {/* Workout carousel */}
         {scannedEquipment && (
-          <section className="pt-4 pb-12 space-y-6">
-            <h2 className="text-center text-sm font-semibold text-white/80 px-4 content-fade-up-3" style={{ animationDelay: '0.15s' }}>Choose Your Workout</h2>
+          <section className="pt-2 sm:pt-4 pb-8 sm:pb-12 space-y-4 sm:space-y-6">
+            <h2 className="text-center text-xs sm:text-sm font-semibold text-white/80 px-4 content-fade-up-3" style={{ animationDelay: '0.15s' }}>Choose Your Workout</h2>
 
-          {/* Carousel - centered with peek */}
+          {/* Mobile Carousel - centered with peek */}
           <div 
             ref={workoutCarouselRef}
-            className="flex gap-4 overflow-x-auto pb-2 snap-x snap-center scrollbar-hide scroll-smooth content-fade-up-3"
+            className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 snap-x snap-center scrollbar-hide scroll-smooth content-fade-up-3 md:hidden"
             style={{
-              paddingLeft: 'calc(50% - 152px)',
-              paddingRight: 'calc(50% - 152px)',
+              paddingLeft: 'calc(50% - 140px)',
+              paddingRight: 'calc(50% - 140px)',
               animationDelay: '0.3s'
             }}
           >
             {workouts.map((workout, idx) => (
               <article
                 key={workout.title + idx}
-                className="min-w-[305px] max-w-[305px] shrink-0 snap-center rounded-3xl overflow-hidden group relative h-80 transition-all duration-300 cursor-pointer hover:scale-105"
+                className="min-w-[280px] max-w-[280px] sm:min-w-[305px] sm:max-w-[305px] shrink-0 snap-center rounded-2xl sm:rounded-3xl overflow-hidden group relative h-72 sm:h-80 transition-all duration-300 cursor-pointer hover:scale-105"
                 style={{
                   boxShadow: '0 12px 24px rgba(0, 0, 0, 0.3)',
                 }}
@@ -461,10 +461,10 @@ export default function Workouts() {
                       className="w-full h-full object-cover blur-md scale-110"
                     />
                     {/* Darker overlay to deepen blur */}
-                    <div className="absolute inset-0 rounded-3xl bg-black/35 mix-blend-multiply" />
+                    <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-black/35 mix-blend-multiply" />
                     {/* Global gradient overlay from bottom */}
                     <div
-                      className="absolute inset-0 rounded-3xl pointer-events-none"
+                      className="absolute inset-0 rounded-2xl sm:rounded-3xl pointer-events-none"
                       style={{
                         background: 'linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%)',
                       }}
@@ -479,8 +479,8 @@ export default function Workouts() {
                     />
                     
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-semibold text-white/90">Coming Soon</span>
-                      <span className="text-sm text-white/60 mt-2">More exercises on the way</span>
+                      <span className="text-xl sm:text-2xl font-semibold text-white/90">Coming Soon</span>
+                      <span className="text-xs sm:text-sm text-white/60 mt-1 sm:mt-2">More exercises on the way</span>
                     </div>
                   </>
                 ) : (
@@ -492,14 +492,14 @@ export default function Workouts() {
                     />
                     {/* Global gradient overlay from bottom */}
                     <div
-                      className="absolute inset-0 rounded-3xl pointer-events-none"
+                      className="absolute inset-0 rounded-2xl sm:rounded-3xl pointer-events-none"
                       style={{
                         background: 'linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%)',
                       }}
                     />
                     {/* Black gradient from bottom covering text */}
                     <div 
-                      className="absolute bottom-0 left-0 right-0 rounded-b-3xl pointer-events-none"
+                      className="absolute bottom-0 left-0 right-0 rounded-b-2xl sm:rounded-b-3xl pointer-events-none"
                       style={{
                         height: '45%',
                         background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 70%, transparent 100%)',
@@ -507,8 +507,8 @@ export default function Workouts() {
                     />
                     
                     {/* Content overlay - only title */}
-                    <div className="absolute inset-0 flex items-end p-4">
-                      <h3 className="text-xl font-semibold text-white">{workout.title}</h3>
+                    <div className="absolute inset-0 flex items-end p-3 sm:p-4">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white">{workout.title}</h3>
                     </div>
                   </>
                 )}
@@ -516,8 +516,82 @@ export default function Workouts() {
             ))}
           </div>
 
-          {/* Dots - follow active carousel index */}
-          <div className="flex justify-center gap-2.5 px-4">
+          {/* Tablet/Desktop Grid - 2 cards on tablet, 3 cards on desktop */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 content-fade-up-3 px-4" style={{ animationDelay: '0.3s' }}>
+            {workouts.map((workout, idx) => (
+              <article
+                key={workout.title + idx}
+                className="rounded-2xl sm:rounded-3xl overflow-hidden group relative h-72 sm:h-80 transition-all duration-300 cursor-pointer hover:scale-105"
+                style={{
+                  boxShadow: '0 12px 24px rgba(0, 0, 0, 0.3)',
+                }}
+                onClick={() => {
+                  if (!workout.isComingSoon) {
+                    router.push(
+                      `/selectedWorkout?equipment=${encodeURIComponent(
+                        scannedEquipment.type
+                      )}&workout=${encodeURIComponent(workout.title)}`
+                    );
+                  }
+                }}
+              >
+                {workout.isComingSoon ? (
+                  <>
+                    <img
+                      src={workout.image}
+                      alt="Coming Soon"
+                      className="w-full h-full object-cover blur-md scale-110"
+                    />
+                    <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-black/35 mix-blend-multiply" />
+                    <div
+                      className="absolute inset-0 rounded-2xl sm:rounded-3xl pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%)',
+                      }}
+                    />
+                    <div 
+                      className="absolute bottom-0 left-0 right-0 rounded-b-2xl sm:rounded-b-3xl pointer-events-none"
+                      style={{
+                        height: '45%',
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 70%, transparent 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-xl sm:text-2xl font-semibold text-white/90">Coming Soon</span>
+                      <span className="text-xs sm:text-sm text-white/60 mt-1 sm:mt-2">More exercises on the way</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <img
+                      src={workout.image}
+                      alt={workout.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div
+                      className="absolute inset-0 rounded-2xl sm:rounded-3xl pointer-events-none"
+                      style={{
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,0.55) 100%)',
+                      }}
+                    />
+                    <div 
+                      className="absolute bottom-0 left-0 right-0 rounded-b-2xl sm:rounded-b-3xl pointer-events-none"
+                      style={{
+                        height: '45%',
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 70%, transparent 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-0 flex items-end p-3 sm:p-4">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white">{workout.title}</h3>
+                    </div>
+                  </>
+                )}
+              </article>
+            ))}
+          </div>
+
+          {/* Dots - Mobile only (hidden when all cards visible) */}
+          <div className="flex justify-center gap-2 sm:gap-2.5 px-4 md:hidden">
             {workouts.map((_, idx) => (
               <span
                 key={idx}

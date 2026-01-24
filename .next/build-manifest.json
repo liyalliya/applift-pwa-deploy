@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/20hIE_KRnQ841rllAuHqf/_buildManifest.js",
-    "static/20hIE_KRnQ841rllAuHqf/_ssgManifest.js"
+    "static/esQUthu2yt7Q6zlBTAA7d/_buildManifest.js",
+    "static/esQUthu2yt7Q6zlBTAA7d/_ssgManifest.js"
   ],
   "rootMainFiles": [],
   "pages": {
@@ -20,7 +20,7 @@
       "static/chunks/webpack-04eaacbe836f524f.js",
       "static/chunks/framework-64ad27b21261a9ce.js",
       "static/chunks/main-0e6eaf36fa18adef.js",
-      "static/css/5c4211a1e8cd793c.css",
+      "static/css/1daf8908be328356.css",
       "static/chunks/pages/_app-f5b143cc0d56611e.js"
     ],
     "/_error": [
@@ -66,7 +66,7 @@
       "static/chunks/framework-64ad27b21261a9ce.js",
       "static/chunks/main-0e6eaf36fa18adef.js",
       "static/chunks/742-1a0d778dedb6c9d9.js",
-      "static/chunks/pages/selectedWorkout-257b3ef28913228d.js"
+      "static/chunks/pages/selectedWorkout-884d58570d5899dc.js"
     ],
     "/settings": [
       "static/chunks/webpack-04eaacbe836f524f.js",
@@ -94,7 +94,7 @@
       "static/chunks/framework-64ad27b21261a9ce.js",
       "static/chunks/main-0e6eaf36fa18adef.js",
       "static/chunks/742-1a0d778dedb6c9d9.js",
-      "static/chunks/pages/workout-monitor-a0f92280430bfad0.js"
+      "static/chunks/pages/workout-monitor-24f7673427471427.js"
     ],
     "/workouts": [
       "static/chunks/webpack-04eaacbe836f524f.js",
@@ -103,7 +103,7 @@
       "static/chunks/742-1a0d778dedb6c9d9.js",
       "static/chunks/664-d254d21a6fe56bff.js",
       "static/chunks/980-aaa940965c1c7d46.js",
-      "static/chunks/pages/workouts-0f64811a47ba7c0e.js"
+      "static/chunks/pages/workouts-825d71f9d35ddcbf.js"
     ]
   },
   "ampFirstPages": []

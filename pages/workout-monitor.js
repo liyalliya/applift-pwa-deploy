@@ -135,8 +135,8 @@ export default function WorkoutMonitor() {
       lastSampleTime.current = now;
     }
     
-    // Start chart updates during countdown, but only count reps after countdown
-    if (isRecording && !isPaused) {
+    // Start chart and counting after countdown completes
+    if (isRecording && !isPaused && !countdownActive) {
       if (recordingStartTime.current === 0) {
         recordingStartTime.current = data.timestamp;
       }
@@ -169,17 +169,15 @@ export default function WorkoutMonitor() {
         return newData.length > MAX_CHART_POINTS ? newData.slice(-MAX_CHART_POINTS) : newData;
       });
       
-      // Rep counting (only after countdown completes)
-      if (!countdownActive) {
-        repCounterRef.current.addSample(
-          data.accelX, data.accelY, data.accelZ,
-          data.gyroX, data.gyroY, data.gyroZ,
-          data.roll, data.pitch, data.yaw,
-          data.filteredMagnitude, relativeTime
-        );
-        
-        setRepStats(repCounterRef.current.getStats());
-      }
+      // Rep counting
+      repCounterRef.current.addSample(
+        data.accelX, data.accelY, data.accelZ,
+        data.gyroX, data.gyroY, data.gyroZ,
+        data.roll, data.pitch, data.yaw,
+        data.filteredMagnitude, relativeTime
+      );
+      
+      setRepStats(repCounterRef.current.getStats());
     }
   }, [isRecording, isPaused, countdownActive]);
 
@@ -452,7 +450,7 @@ export default function WorkoutMonitor() {
       {/* Countdown Overlay */}
       {showCountdown && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
-          <div className="text-9xl font-bold text-white animate-pulse">
+          <div className="text-7xl sm:text-8xl md:text-9xl font-bold text-white animate-pulse">
             {countdownValue}
           </div>
         </div>
@@ -460,18 +458,18 @@ export default function WorkoutMonitor() {
 
       {/* Break Overlay */}
       {isOnBreak && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
-          <div className="flex flex-col items-center gap-8">
-            <div className="text-3xl font-bold text-white text-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-4">
+          <div className="flex flex-col items-center gap-6 sm:gap-8">
+            <div className="text-2xl sm:text-3xl font-bold text-white text-center">
               Current set done!
             </div>
-            <div className="text-xl font-semibold text-white/80 text-center">
+            <div className="text-lg sm:text-xl font-semibold text-white/80 text-center">
               Take a break
             </div>
             
             {/* Circular Progress Timer */}
-            <div className="relative w-64 h-64">
-              <svg className="w-full h-full transform -rotate-90">
+            <div className="relative w-48 h-48 sm:w-64 sm:h-64">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 256 256">
                 {/* Background circle */}
                 <circle
                   cx="128"
@@ -505,10 +503,10 @@ export default function WorkoutMonitor() {
               
               {/* Timer text in center */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-7xl font-bold text-white">
+                <div className="text-5xl sm:text-7xl font-bold text-white">
                   {breakTimeRemaining}
                 </div>
-                <div className="text-xl text-white/60 mt-1">
+                <div className="text-lg sm:text-xl text-white/60 mt-1">
                   seconds
                 </div>
               </div>
@@ -516,7 +514,7 @@ export default function WorkoutMonitor() {
             
             <button
               onClick={skipBreak}
-              className="px-8 py-4 rounded-full font-bold text-white text-xl transition-all hover:scale-105"
+              className="px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl transition-all hover:scale-105"
               style={{
                 background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
                 boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
@@ -573,7 +571,7 @@ export default function WorkoutMonitor() {
         onDismiss={() => setLastRepNotification(null)}
       />
 
-      <main className="mx-auto w-full max-w-[1200px] px-4 pt-6 pb-24 space-y-4">
+      <main className="mx-auto w-full max-w-4xl px-3 sm:px-4 md:px-6 pt-4 sm:pt-6 pb-[500px] md:pb-[450px] space-y-3 sm:space-y-4">
         {/* Header with back button and connection pill */}
         <div className="flex items-center justify-between">
           <button
@@ -602,8 +600,8 @@ export default function WorkoutMonitor() {
 
         {/* Workout Title */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold">{workout}</h1>
-          <p className="text-sm text-white/60">{equipment}</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{workout}</h1>
+          <p className="text-xs sm:text-sm text-white/60">{equipment}</p>
         </div>
 
         {/* Disconnection Warning during session */}
@@ -619,26 +617,29 @@ export default function WorkoutMonitor() {
             <p className="text-sm text-red-300">⚠️ Device not connected. Please connect your IMU device.</p>
           </div>
         )}
+      </main>
 
-        {/* Chart */}
-        <div className="rounded-2xl bg-white/5 p-4 border border-white/10 min-h-[400px] mb-8">
-          <h3 className="text-sm font-semibold text-white mb-3">Real-time Acceleration</h3>
-          <AccelerationChart
-            timeData={timeData}
-            rawData={[]}
-            filteredData={filteredAccelData}
-            thresholdHigh={repStats.thresholdHigh}
-            thresholdLow={repStats.thresholdLow}
-          />
-        </div>
+      {/* Chart Container - Fixed at bottom above buttons - Glassmorphism design */}
+      <div className="fixed bottom-0 left-0 right-0 px-3 sm:px-4 md:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4" style={{
+        background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.98) 80%, rgba(0,0,0,0) 100%)',
+      }}>
+        <div className="mx-auto w-full max-w-4xl space-y-3 sm:space-y-4">
+          {/* Chart */}
+          <div className="rounded-xl sm:rounded-2xl bg-white/5 p-3 sm:p-4 border border-white/10" style={{
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+          }}>
+            <h3 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 text-center">Real-time Acceleration</h3>
+            <AccelerationChart
+              timeData={timeData}
+              filteredData={filteredAccelData}
+              thresholdHigh={repStats.thresholdHigh}
+              thresholdLow={repStats.thresholdLow}
+            />
+          </div>
 
-        {/* Bottom Container - Fixed at bottom - Glassmorphism design */}
-        <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-4" style={{
-          background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.98) 80%, rgba(0,0,0,0) 100%)',
-        }}>
-          <div className="mx-auto w-full max-w-[1200px]">
-            {/* Single container with glassmorphism effect */}
-            <div className="rounded-3xl overflow-hidden" style={{
+          {/* Bottom Container - Buttons and Info Cards */}
+          <div className="rounded-2xl sm:rounded-3xl overflow-hidden" style={{
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
@@ -646,19 +647,19 @@ export default function WorkoutMonitor() {
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
             }}>
               {/* Timer/Start Button Bar */}
-              <div className="p-4 flex items-center justify-between" >
+              <div className="p-3 sm:p-4 flex items-center justify-between" >
                 {!isRecording ? (
                   <button
                     onClick={startRecording}
                     disabled={!connected || !isSubscribed}
-                    className="w-full py-4 rounded-full font-bold text-white text-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                    className="w-full py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl md:text-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-3"
                     style={{
                       background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
                       boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
                     }}
                   >
-                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z"/>
                       </svg>
                     </div>
@@ -669,14 +670,14 @@ export default function WorkoutMonitor() {
                     {!isPaused ? (
                       <button
                         onClick={togglePause}
-                        className="w-full py-4 rounded-full font-bold text-white text-2xl transition-all flex items-center justify-center gap-3"
+                        className="w-full py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl md:text-2xl transition-all flex items-center justify-center gap-2 sm:gap-3"
                         style={{
                           background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
                           boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
                         }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
                           </svg>
                         </div>
@@ -685,14 +686,14 @@ export default function WorkoutMonitor() {
                     ) : (
                       <button
                         onClick={togglePause}
-                        className="w-full py-4 rounded-full font-bold text-white text-2xl transition-all flex items-center justify-between px-8"
+                        className="w-full py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl md:text-2xl transition-all flex items-center justify-between px-4 sm:px-6 md:px-8"
                         style={{
                           background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
                           boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
                         }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                           </svg>
                         </div>
@@ -702,9 +703,9 @@ export default function WorkoutMonitor() {
                             e.stopPropagation();
                             stopRecording();
                           }}
-                          className="w-10 h-10 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-all"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-all"
                         >
-                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <rect x="6" y="6" width="12" height="12"/>
                           </svg>
                         </button>
@@ -715,52 +716,51 @@ export default function WorkoutMonitor() {
               </div>
 
               {/* Info Cards Row - Inside same container */}
-              <div className="grid grid-cols-2 gap-3 pt-2 pb-4 px-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
                 {/* Rep Count Card */}
-                <div className="rounded-2xl p-4 relative" style={{
+                <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4 relative" style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.25)',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
                 }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <img src="/images/applift-logo/AppLift_Logo_White.png" alt="AppLift" className="w-6 h-6" />
-                    <span className="text-sm font-semibold text-white/90">Reps</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                    <img src="/images/applift-logo/AppLift_Logo_White.png" alt="AppLift" className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span className="text-xs sm:text-sm font-semibold text-white/90">Reps</span>
                   </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">{repStats.repCount}</span>
-                    <span className="text-2xl font-semibold text-white/60">/</span>
-                    <span className="text-2xl font-semibold text-white/60">{recommendedReps}</span>
+                  <div className="flex items-baseline gap-0.5 sm:gap-1">
+                    <span className="text-3xl sm:text-4xl font-bold text-white">{repStats.repCount}</span>
+                    <span className="text-xl sm:text-2xl font-semibold text-white/60">/</span>
+                    <span className="text-xl sm:text-2xl font-semibold text-white/60">{recommendedReps}</span>
                   </div>
-                  <span className="absolute bottom-3 right-3 text-xs font-semibold px-2 py-1 rounded-full bg-purple-500/30 text-purple-200">
+                  <span className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-purple-500/30 text-purple-200">
                     {repStats.state.toLowerCase()}
                   </span>
                 </div>
 
                 {/* Set Card */}
-                <div className="rounded-2xl p-4" style={{
+                <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4" style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.25)',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
                 }}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">📊</span>
-                    <span className="text-sm font-semibold text-white/90">Set</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                    <span className="text-xl sm:text-2xl">📊</span>
+                    <span className="text-xs sm:text-sm font-semibold text-white/90">Set</span>
                   </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">{currentSet}</span>
-                    <span className="text-2xl font-semibold text-white/60">/</span>
-                    <span className="text-2xl font-semibold text-white/60">{recommendedSets}</span>
+                  <div className="flex items-baseline gap-0.5 sm:gap-1">
+                    <span className="text-3xl sm:text-4xl font-bold text-white">{currentSet}</span>
+                    <span className="text-xl sm:text-2xl font-semibold text-white/60">/</span>
+                    <span className="text-xl sm:text-2xl font-semibold text-white/60">{recommendedSets}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </main>
     </div>
   );
 }

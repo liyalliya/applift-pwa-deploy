@@ -9,10 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "apexcharts": "^5.3.6",
     "chart.js": "^4.5.1",
     "next": "14.2.33",
     "next-pwa": "^5.6.0",
     "react": "^18",
+    "react-apexcharts": "^1.9.0",
     "react-dom": "^18",
     "recharts": "^3.6.0"
   },
