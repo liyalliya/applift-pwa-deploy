@@ -71,7 +71,7 @@ export default function Home() {
   };
 
   const textStyle = {
-    color: '#000000',
+    color: '#FFFFFF',
     opacity: stage === 'revealing' || stage === 'finalHold' ? 1 : 0,
     transform: stage === 'revealing' || stage === 'finalHold' ? 'translateX(0)' : 'translateX(16px)',
     marginLeft: stage === 'revealing' || stage === 'finalHold' ? '8px' : '0px',
@@ -87,10 +87,10 @@ export default function Home() {
     transition: stage === 'zooming' || stage === 'fullBlack'
       ? `transform ${zoomDuration}ms cubic-bezier(0.4, 0.0, 0.6, 1), opacity ${fadeDuration}ms ease-out` 
       : 'none',
-    transform: stage === 'zooming' || stage === 'fullBlack' ? 'scale(10)' : 'scale(1)', // Even more dramatic zoom
-    opacity: stage === 'fullBlack' ? 0 : 1,
+    transform: stage === 'zooming' || stage === 'fullBlack' ? 'scale(0.3)' : 'scale(1)', // Zoom out instead of zoom in
+    opacity: stage === 'zooming' || stage === 'fullBlack' ? 0 : 1, // Fade out
     position: 'relative',
-    zIndex: stage === 'zooming' || stage === 'fullBlack' ? 10000 : 10, // Ensure logo is above black overlay during zoom
+    zIndex: stage === 'zooming' || stage === 'fullBlack' ? 10000 : 10,
   };
 
   return (
@@ -116,7 +116,7 @@ export default function Home() {
         }}
       />
 
-      <div className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden" style={{ zIndex: 1 }}>
+      <div className="relative min-h-screen flex items-center justify-center bg-black overflow-hidden" style={{ zIndex: 1 }}>
         <Head>
           <title>AppLift Test - Landing</title>
           <meta name="description" content="AppLift Strength & Conditioning Assistant" />
@@ -128,7 +128,7 @@ export default function Home() {
             ['--logo-size']: 'clamp(2.5rem, 8vw, 5rem)',
           }}>
             <img
-              src="/images/applift-logo/AppLift_Logo_Black.png"
+              src="/images/applift-logo/AppLift_Logo_White.png"
               alt="AppLift logo"
               style={{
                 ...getResponsiveLogoSize(),
@@ -155,7 +155,7 @@ export default function Home() {
                   fontSize: 'calc(var(--logo-size) * 0.28)',
                   lineHeight: 1,
                   display: 'inline-block',
-                  color: '#333333',
+                  color: '#cccccc',
                 }}
               >
                 Your S&C buddy

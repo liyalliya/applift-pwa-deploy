@@ -140,8 +140,8 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
                 color: 'rgba(255, 255, 255, 0.08)',
                 drawBorder: false
               },
-              min: 8,
-              max: 12
+              suggestedMin: 0,
+              grace: '10%'
             }
           },
           plugins: {
@@ -231,7 +231,7 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
   }, [timeData, filteredData, thresholdHigh, thresholdLow]);
 
   return (
-    <div className="w-full h-64 sm:h-80 md:h-96">
+    <div className="w-full h-96 sm:h-[28rem] md:h-[36rem]">
       <canvas ref={canvasRef}></canvas>
     </div>
   );

@@ -77,7 +77,7 @@ export default function WorkoutFinishedModal({
               if (onClose) onClose();
               router.back();
             }}
-            className="flex items-center justify-center h-11 w-11 rounded-full bg-black/30 hover:bg-black/40 transition-all backdrop-blur-md"
+            className="flex items-center justify-center h-11 w-11 rounded-full hover:bg-black/40 transition-all backdrop-blur-md"
             aria-label="Go back"
           >
             <img

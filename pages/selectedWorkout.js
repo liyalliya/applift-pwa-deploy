@@ -127,7 +127,7 @@ export default function SelectedWorkout() {
           {/* Back button */}
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300 shrink-0"
+            className="flex items-center justify-center h-10 w-10 rounded-lg hover:bg-white/20 transition-all duration-300 shrink-0"
             aria-label="Go back"
           >
             <img
@@ -151,7 +151,7 @@ export default function SelectedWorkout() {
         </div>
 
         {/* Recommended Set Card */}
-        <div className="content-fade-up-2">
+        <div className="content-fade-up-2" style={{ animationDelay: '0.05s' }}>
           <RecommendedSetCard
             equipment={equipment}
             workout={workout}
@@ -163,7 +163,7 @@ export default function SelectedWorkout() {
         </div>
 
         {/* Target Muscles - Separate Container */}
-        <div className="content-fade-up-2 rounded-xl sm:rounded-2xl bg-white/5 p-3 sm:p-4 border border-white/10 flex items-center gap-2 sm:gap-3" style={{ animationDelay: '0.1s' }}>
+        <div className="content-fade-up-2 rounded-xl sm:rounded-2xl bg-white/5 p-3 sm:p-4 border border-white/10 flex items-center gap-2 sm:gap-3" style={{ animationDelay: '0.15s' }}>
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -188,7 +188,7 @@ export default function SelectedWorkout() {
         </div>
 
         {/* Exercise Information - No Container */}
-        <div className="content-fade-up-2 space-y-2 sm:space-y-3" style={{ animationDelay: '0.15s' }}>
+        <div className="content-fade-up-2 space-y-2 sm:space-y-3" style={{ animationDelay: '0.25s' }}>
           <div>
             <h3 className="text-xs sm:text-sm font-semibold text-white mb-1.5 sm:mb-2">About This Exercise</h3>
             <p className="text-[11px] sm:text-xs text-white/70 leading-relaxed">{details.description}</p>
@@ -220,7 +220,7 @@ export default function SelectedWorkout() {
         </div>
 
         {/* Warm Up Banner */}
-        <div className="content-fade-up-3 mb-16 sm:mb-20" style={{ animationDelay: '0.2s' }}>
+        <div className="content-fade-up-3 mb-16 sm:mb-20" style={{ animationDelay: '0.35s' }}>
           <WarmUpBanner />
         </div>
       </main>

@@ -73,14 +73,16 @@ export default function Workouts() {
 
   // Get workouts based on scanned equipment
   const workouts = scannedEquipment
-    ? [
-        ...(exercisesByEquipment[scannedEquipment.type] || []),
-        { 
-          title: 'Coming Soon', 
-          image: comingSoonImages[scannedEquipment.type], 
-          isComingSoon: true 
-        },
-      ]
+    ? scannedEquipment.type === 'Barbell' || scannedEquipment.type === 'Dumbell' || scannedEquipment.type === 'Weight Stack'
+      ? [
+          ...(exercisesByEquipment[scannedEquipment.type] || []),
+          { 
+            title: 'Coming Soon', 
+            image: comingSoonImages[scannedEquipment.type], 
+            isComingSoon: true 
+          },
+        ]
+      : (exercisesByEquipment[scannedEquipment.type] || [])
     : [];
 
   useEffect(() => {
@@ -360,8 +362,8 @@ export default function Workouts() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center gap-4 py-4">
-                    <div className="flex h-24 w-36 items-center justify-center rounded-2xl p-4 bg-gray-600 border border-gray-500 shadow-lg grayscale">
-                      <EquipmentIcon type="Barbell" />
+                    <div className="flex h-24 w-36 items-center justify-center rounded-2xl p-4">
+                      <img src="/images/icons/invalid-tag.png" alt="Invalid Tag" className="w-16 h-16" />
                     </div>
                     <div className="text-center space-y-2">
                       <span className="text-2xl font-semibold text-white">Invalid Tag</span>

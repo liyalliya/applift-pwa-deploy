@@ -71,9 +71,16 @@ export default function WorkoutMonitor() {
   const recordingStartTime = useRef(0);
   const rawDataLog = useRef([]);
   
+  // Refs to avoid closure issues in callbacks
+  const isRecordingRef = useRef(false);
+  const isPausedRef = useRef(false);
+  const countdownActiveRef = useRef(false);
+  
   // Break state
   const [isOnBreak, setIsOnBreak] = useState(false);
   const [breakTimeRemaining, setBreakTimeRemaining] = useState(30); // 30 seconds break
+  const [breakPaused, setBreakPaused] = useState(false);
+  const [motivationalMessage, setMotivationalMessage] = useState('');
   const breakTimerRef = useRef(null);
   
   // Congratulations modal
@@ -135,8 +142,8 @@ export default function WorkoutMonitor() {
       lastSampleTime.current = now;
     }
     
-    // Start chart and counting after countdown completes
-    if (isRecording && !isPaused && !countdownActive) {
+    // Start chart and counting after countdown completes - use refs to avoid closure issues
+    if (isRecordingRef.current && !isPausedRef.current && !countdownActiveRef.current) {
       if (recordingStartTime.current === 0) {
         recordingStartTime.current = data.timestamp;
       }
@@ -179,10 +186,17 @@ export default function WorkoutMonitor() {
       
       setRepStats(repCounterRef.current.getStats());
     }
-  }, [isRecording, isPaused, countdownActive]);
+  }, []); // Empty deps - using refs instead to avoid closure issues
 
   // Subscribe to IMU data (no NFC handler needed)
   const { isSubscribed, error: imuError, resetFilters } = useIMUData(handleIMUData, null);
+  
+  // Sync state to refs to avoid closure issues in callbacks
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+    isPausedRef.current = isPaused;
+    countdownActiveRef.current = countdownActive;
+  }, [isRecording, isPaused, countdownActive]);
 
   // Timer effect - starts after countdown completes
   useEffect(() => {
@@ -208,42 +222,110 @@ export default function WorkoutMonitor() {
 
   // Pause/Resume
   const togglePause = () => {
-    setIsPaused(prev => !prev);
+    setIsPaused(prev => {
+      const newValue = !prev;
+      isPausedRef.current = newValue;
+      return newValue;
+    });
   };
 
   // Start break between sets
   const startBreak = () => {
+    const messages = [
+      "You're doing amazing!",
+      "Keep up the great work!",
+      "Stay strong, you've got this!",
+      "Almost there, keep pushing!",
+      "You're crushing it!",
+      "Breathe and recover!",
+      "Rest up for the next set!",
+      "You're making progress!"
+    ];
+    setMotivationalMessage(messages[Math.floor(Math.random() * messages.length)]);
     setIsOnBreak(true);
     setIsPaused(true);
     setBreakTimeRemaining(30); // 30 seconds break
   };
 
-  // End break and start next set
-  const endBreak = () => {
+  // End break and start next set automatically
+  const endBreak = async () => {
+    // Fade out the break timer first
+    const breakOverlay = document.querySelector('.break-overlay');
+    if (breakOverlay) {
+      breakOverlay.classList.add('animate-fadeOut');
+      await new Promise(resolve => setTimeout(resolve, 400)); // Wait for fade out
+    }
+    
     setIsOnBreak(false);
-    setIsPaused(false);
-    setIsRecording(false); // Stop recording, user must click Start Recording
+    setBreakPaused(false);
     
     // Reset reps and increment set
     repCounterRef.current.reset();
     setRepStats(repCounterRef.current.getStats());
     setCurrentSet(prev => prev + 1);
     
-    // Clear chart data for new set
+    // Clear chart data for new set BEFORE countdown
     setTimeData([]);
     setRawAccelData([]);
     setFilteredAccelData([]);
     recordingStartTime.current = 0;
+    rawDataLog.current = [];
+    resetFilters();
+    setElapsedTime(0);
+    
+    // Set states for countdown phase
+    setCountdownActive(true);
+    countdownActiveRef.current = true;
+    setIsPaused(false);
+    isPausedRef.current = false;
+    setIsRecording(true);
+    isRecordingRef.current = true;
+    
+    // Show countdown overlay
+    setShowCountdown(true);
+    setCountdownValue(3);
+    
+    for (let i = 3; i > 0; i--) {
+      setCountdownValue(i);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    setCountdownValue('GO!');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Add fade-out animation
+    const countdownOverlay = document.querySelector('.countdown-overlay');
+    if (countdownOverlay) {
+      countdownOverlay.classList.add('animate-fadeOut');
+      await new Promise(resolve => setTimeout(resolve, 400)); // Wait for fade out
+    }
+    
+    // Countdown complete - enable recording and counting
+    setShowCountdown(false);
+    setCountdownActive(false);
+    countdownActiveRef.current = false; // Update ref immediately
+    setIsPaused(false);
+    isPausedRef.current = false;
+    setIsRecording(true);
+    isRecordingRef.current = true;
+    
+    // Scroll to top to show chart
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Skip break and start next set immediately
-  const skipBreak = () => {
+  // Stop break and start next set immediately
+  const stopBreak = () => {
     if (breakTimerRef.current) {
       clearInterval(breakTimerRef.current);
       breakTimerRef.current = null;
     }
     setBreakTimeRemaining(30); // Reset timer
     endBreak();
+  };
+  
+  // Toggle pause for break timer
+  const toggleBreakPause = () => {
+    setBreakPaused(prev => !prev);
   };
 
   // Check if set is complete (reps reached target)
@@ -277,7 +359,7 @@ export default function WorkoutMonitor() {
 
   // Break timer effect
   useEffect(() => {
-    if (isOnBreak) {
+    if (isOnBreak && !breakPaused) {
       breakTimerRef.current = setInterval(() => {
         setBreakTimeRemaining(prev => {
           if (prev <= 1) {
@@ -300,7 +382,7 @@ export default function WorkoutMonitor() {
         clearInterval(breakTimerRef.current);
       }
     };
-  }, [isOnBreak]);
+  }, [isOnBreak, breakPaused]);
 
   // Start recording with countdown
   const startRecording = async () => {
@@ -309,12 +391,7 @@ export default function WorkoutMonitor() {
       return;
     }
     
-    // Set recording state immediately but block counting during countdown
-    setIsRecording(true);
-    setCountdownActive(true);
-    setIsPaused(false);
-    
-    // Reset data
+    // Reset data BEFORE countdown
     recordingStartTime.current = 0;
     rawDataLog.current = [];
     repCounterRef.current.reset();
@@ -326,6 +403,14 @@ export default function WorkoutMonitor() {
     setSampleCount(0);
     setElapsedTime(0);
     // Don't reset currentSet here - only reset when truly starting fresh
+    
+    // Set states for countdown phase
+    setCountdownActive(true);
+    countdownActiveRef.current = true;
+    setIsPaused(false);
+    isPausedRef.current = false;
+    setIsRecording(true);
+    isRecordingRef.current = true;
     
     // Show countdown overlay
     setShowCountdown(true);
@@ -339,10 +424,24 @@ export default function WorkoutMonitor() {
     setCountdownValue('GO!');
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Add fade-out animation
+    const countdownOverlay = document.querySelector('.countdown-overlay');
+    if (countdownOverlay) {
+      countdownOverlay.classList.add('animate-fadeOut');
+      await new Promise(resolve => setTimeout(resolve, 400)); // Wait for fade out
+    }
+    
     // Countdown complete - enable recording and counting
-    setCountdownActive(false);
     setShowCountdown(false);
     setCountdownActive(false);
+    countdownActiveRef.current = false; // Update ref immediately
+    setIsPaused(false);
+    isPausedRef.current = false;
+    setIsRecording(true);
+    isRecordingRef.current = true;
+    
+    // Scroll to top to show chart
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Stop recording
@@ -363,6 +462,8 @@ export default function WorkoutMonitor() {
     setWorkoutStats({ totalReps: 0, allRepDurations: [], completedSets: 0, totalTime: 0 });
     repCounterRef.current.reset();
     setRepStats(repCounterRef.current.getStats());
+    
+    // Don't clear chart data - let it persist so user can see their last set
   };
 
   // Export data to CSV
@@ -449,7 +550,7 @@ export default function WorkoutMonitor() {
 
       {/* Countdown Overlay */}
       {showCountdown && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
+        <div className="countdown-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black/90 animate-fadeIn">
           <div className="text-7xl sm:text-8xl md:text-9xl font-bold text-white animate-pulse">
             {countdownValue}
           </div>
@@ -458,17 +559,19 @@ export default function WorkoutMonitor() {
 
       {/* Break Overlay */}
       {isOnBreak && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 px-4">
-          <div className="flex flex-col items-center gap-6 sm:gap-8">
-            <div className="text-2xl sm:text-3xl font-bold text-white text-center">
-              Current set done!
-            </div>
-            <div className="text-lg sm:text-xl font-semibold text-white/80 text-center">
-              Take a break
+        <div className="break-overlay fixed inset-0 z-[100] flex items-center justify-center bg-black px-4 animate-fadeIn">
+          <div className="flex flex-col items-center gap-8 sm:gap-10">
+            <div className="text-center">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
+                Take a break!
+              </div>
+              <div className="text-base sm:text-lg md:text-xl text-white/70">
+                {motivationalMessage}
+              </div>
             </div>
             
-            {/* Circular Progress Timer */}
-            <div className="relative w-48 h-48 sm:w-64 sm:h-64">
+            {/* Circular Progress Timer - Bigger and centered */}
+            <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 256 256">
                 {/* Background circle */}
                 <circle
@@ -476,52 +579,77 @@ export default function WorkoutMonitor() {
                   cy="128"
                   r="110"
                   stroke="rgba(255, 255, 255, 0.1)"
-                  strokeWidth="12"
+                  strokeWidth="16"
                   fill="none"
                 />
-                {/* Progress circle */}
+                {/* Glow effect circle */}
                 <circle
                   cx="128"
                   cy="128"
                   r="110"
-                  stroke="url(#gradient)"
-                  strokeWidth="12"
+                  stroke="url(#breakGradient)"
+                  strokeWidth="16"
                   fill="none"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 110}`}
                   strokeDashoffset={`${2 * Math.PI * 110 * (1 - (30 - breakTimeRemaining) / 30)}`}
-                  style={{ transition: 'stroke-dashoffset 1s linear' }}
+                  style={{ 
+                    transition: breakPaused ? 'none' : 'stroke-dashoffset 1s linear',
+                    filter: 'drop-shadow(0 0 8px rgba(168, 85, 247, 0.8))'
+                  }}
                 />
-                {/* Gradient definition */}
+                {/* Gradient definition - light to dark as time progresses */}
                 <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#c084fc" />
-                    <stop offset="100%" stopColor="#9333ea" />
+                  <linearGradient id="breakGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={breakTimeRemaining > 20 ? "#e9d5ff" : breakTimeRemaining > 10 ? "#c084fc" : "#9333ea"} />
+                    <stop offset="50%" stopColor={breakTimeRemaining > 15 ? "#c084fc" : "#a855f7"} />
+                    <stop offset="100%" stopColor={breakTimeRemaining > 10 ? "#a855f7" : "#7c3aed"} />
                   </linearGradient>
                 </defs>
               </svg>
               
               {/* Timer text in center */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <div className="text-5xl sm:text-7xl font-bold text-white">
-                  {breakTimeRemaining}
-                </div>
-                <div className="text-lg sm:text-xl text-white/60 mt-1">
-                  seconds
+                <div className="text-6xl sm:text-7xl md:text-8xl font-bold text-white">
+                  {Math.floor(breakTimeRemaining / 60)}:{(breakTimeRemaining % 60).toString().padStart(2, '0')}
                 </div>
               </div>
             </div>
             
-            <button
-              onClick={skipBreak}
-              className="px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl transition-all hover:scale-105"
-              style={{
-                background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
-                boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
-              }}
-            >
-              Skip Break
-            </button>
+            {/* Pause and Stop buttons */}
+            <div className="flex items-center gap-8 sm:gap-12">
+              {/* Pause button */}
+              <button
+                onClick={toggleBreakPause}
+                className="flex flex-col items-center gap-2 transition-all hover:scale-110"
+              >
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 flex items-center justify-center">
+                  {breakPaused ? (
+                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                    </svg>
+                  )}
+                </div>
+                <span className="text-sm sm:text-base text-white/80">{breakPaused ? 'Resume' : 'Pause'}</span>
+              </button>
+              
+              {/* Stop button */}
+              <button
+                onClick={stopBreak}
+                className="flex flex-col items-center gap-2 transition-all hover:scale-110"
+              >
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10 flex items-center justify-center">
+                  <svg className="w-7 h-7 sm:w-9 sm:h-9 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                  </svg>
+                </div>
+                <span className="text-sm sm:text-base text-white/80">End</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -571,12 +699,12 @@ export default function WorkoutMonitor() {
         onDismiss={() => setLastRepNotification(null)}
       />
 
-      <main className="mx-auto w-full max-w-4xl px-3 sm:px-4 md:px-6 pt-4 sm:pt-6 pb-[500px] md:pb-[450px] space-y-3 sm:space-y-4">
+      <main className="mx-auto w-full max-w-4xl px-3 sm:px-4 md:px-6 pt-4 sm:pt-6 pb-80 sm:pb-96 space-y-3 sm:space-y-4 overflow-y-auto min-h-screen">
         {/* Header with back button and connection pill */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between content-fade-up-1">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center h-10 w-10 rounded-lg bg-white/10 hover:bg-white/20 transition-all"
+            className="flex items-center justify-center h-10 w-10 rounded-lg hover:bg-white/20 transition-all"
             aria-label="Go back"
           >
             <img
@@ -599,47 +727,49 @@ export default function WorkoutMonitor() {
         </div>
 
         {/* Workout Title */}
-        <div className="text-center">
+        <div className="text-center content-fade-up-2" style={{ animationDelay: '0.05s' }}>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{workout}</h1>
           <p className="text-xs sm:text-sm text-white/60">{equipment}</p>
         </div>
 
         {/* Disconnection Warning during session */}
         {!connected && isRecording && (
-          <div className="rounded-xl bg-red-500/20 border border-red-500/50 p-4 text-center animate-pulse">
+          <div className="rounded-xl bg-red-500/20 border border-red-500/50 p-4 text-center animate-pulse content-fade-up-2" style={{ animationDelay: '0.15s' }}>
             <p className="text-sm text-red-300 font-semibold">⚠️ Device disconnected. Please reconnect to continue session.</p>
           </div>
         )}
 
         {/* Connection Status - Before Starting */}
         {!connected && !isRecording && (
-          <div className="rounded-xl bg-red-500/20 border border-red-500/50 p-4 text-center">
+          <div className="rounded-xl bg-red-500/20 border border-red-500/50 p-4 text-center content-fade-up-2" style={{ animationDelay: '0.15s' }}>
             <p className="text-sm text-red-300">⚠️ Device not connected. Please connect your IMU device.</p>
           </div>
         )}
+
+        {/* Chart */}
+        <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/10 mb-4 sm:mb-5 content-fade-up-3" style={{
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          animationDelay: '0.25s'
+        }}>
+          <h3 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 text-center">Real-time Acceleration</h3>
+          <AccelerationChart
+            timeData={timeData}
+            filteredData={filteredAccelData}
+            thresholdHigh={repStats.thresholdHigh}
+            thresholdLow={repStats.thresholdLow}
+          />
+        </div>
       </main>
 
-      {/* Chart Container - Fixed at bottom above buttons - Glassmorphism design */}
-      <div className="fixed bottom-0 left-0 right-0 px-3 sm:px-4 md:px-6 pb-4 sm:pb-6 pt-3 sm:pt-4" style={{
-        background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.98) 80%, rgba(0,0,0,0) 100%)',
+      {/* Bottom Container - Fixed at bottom - Buttons and Info Cards */}
+      <div className="fixed bottom-0 left-0 right-0 px-3 sm:px-4 md:px-6 pb-4 sm:pb-6 pt-2 sm:pt-3" style={{
+        background: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.98) 70%, rgba(0,0,0,0) 100%)',
       }}>
-        <div className="mx-auto w-full max-w-4xl space-y-3 sm:space-y-4">
-          {/* Chart */}
-          <div className="rounded-xl sm:rounded-2xl bg-white/5 p-3 sm:p-4 border border-white/10" style={{
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-          }}>
-            <h3 className="text-xs sm:text-sm font-semibold text-white mb-2 sm:mb-3 text-center">Real-time Acceleration</h3>
-            <AccelerationChart
-              timeData={timeData}
-              filteredData={filteredAccelData}
-              thresholdHigh={repStats.thresholdHigh}
-              thresholdLow={repStats.thresholdLow}
-            />
-          </div>
-
+        <div className="mx-auto w-full max-w-4xl">
           {/* Bottom Container - Buttons and Info Cards */}
-          <div className="rounded-2xl sm:rounded-3xl overflow-hidden" style={{
+          <div className="rounded-2xl sm:rounded-3xl overflow-hidden content-fade-up-4" style={{
+              animationDelay: '0.35s',
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
@@ -718,49 +848,49 @@ export default function WorkoutMonitor() {
               {/* Info Cards Row - Inside same container */}
               <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2 pb-3 sm:pb-4 px-3 sm:px-4">
                 {/* Rep Count Card */}
-                <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4 relative" style={{
+                <div className="rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 relative" style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.25)',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
                 }}>
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-                    <img src="/images/applift-logo/AppLift_Logo_White.png" alt="AppLift" className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span className="text-xs sm:text-sm font-semibold text-white/90">Reps</span>
+                  <div className="flex items-center gap-3 sm:gap-4 mb-7 sm:mb-8">
+                    <img src="/images/applift-logo/AppLift_Logo_White.png" alt="AppLift" className="w-6 h-6 sm:w-7 sm:h-7" />
+                    <span className="text-sm sm:text-base font-semibold text-white/90">Reps</span>
                   </div>
-                  <div className="flex items-baseline gap-0.5 sm:gap-1">
-                    <span className="text-3xl sm:text-4xl font-bold text-white">{repStats.repCount}</span>
-                    <span className="text-xl sm:text-2xl font-semibold text-white/60">/</span>
-                    <span className="text-xl sm:text-2xl font-semibold text-white/60">{recommendedReps}</span>
+                  <div className="flex items-baseline gap-1 sm:gap-1.5">
+                    <span className="text-5xl sm:text-6xl font-bold text-white">{repStats.repCount}</span>
+                    <span className="text-2xl sm:text-3xl font-semibold text-white/60">/</span>
+                    <span className="text-3xl sm:text-4xl font-semibold text-white/70">{recommendedReps}</span>
                   </div>
-                  <span className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-purple-500/30 text-purple-200">
+                  <span className="absolute bottom-2.5 right-2.5 sm:bottom-3.5 sm:right-3.5 text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-purple-500/30 text-purple-200">
                     {repStats.state.toLowerCase()}
                   </span>
                 </div>
 
                 {/* Set Card */}
-                <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4" style={{
+                <div className="rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex flex-col justify-between" style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.25)',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
                 }}>
-                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <span className="text-xl sm:text-2xl">📊</span>
                     <span className="text-xs sm:text-sm font-semibold text-white/90">Set</span>
                   </div>
-                  <div className="flex items-baseline gap-0.5 sm:gap-1">
-                    <span className="text-3xl sm:text-4xl font-bold text-white">{currentSet}</span>
-                    <span className="text-xl sm:text-2xl font-semibold text-white/60">/</span>
-                    <span className="text-xl sm:text-2xl font-semibold text-white/60">{recommendedSets}</span>
+                  <div className="flex items-baseline gap-1 sm:gap-1.5">
+                    <span className="text-5xl sm:text-6xl font-bold text-white">{currentSet}</span>
+                    <span className="text-2xl sm:text-3xl font-semibold text-white/60">/</span>
+                    <span className="text-3xl sm:text-4xl font-semibold text-white/70">{recommendedSets}</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
         </div>
+      </div>
     </div>
   );
 }
