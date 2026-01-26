@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/DddleAHwYQytY6YRIL8gK/_buildManifest.js",
-    "static/DddleAHwYQytY6YRIL8gK/_ssgManifest.js"
+    "static/pHyF6s4IrUU9xSz1XZBA8/_buildManifest.js",
+    "static/pHyF6s4IrUU9xSz1XZBA8/_ssgManifest.js"
   ],
   "rootMainFiles": [],
   "pages": {
@@ -20,7 +20,7 @@
       "static/chunks/webpack-04eaacbe836f524f.js",
       "static/chunks/framework-64ad27b21261a9ce.js",
       "static/chunks/main-0e6eaf36fa18adef.js",
-      "static/css/e0926fa41a22725d.css",
+      "static/css/6e92ee2a0de52a73.css",
       "static/chunks/pages/_app-f5b143cc0d56611e.js"
     ],
     "/_error": [
@@ -59,7 +59,7 @@
       "static/chunks/framework-64ad27b21261a9ce.js",
       "static/chunks/main-0e6eaf36fa18adef.js",
       "static/chunks/664-d254d21a6fe56bff.js",
-      "static/chunks/pages/profile-d7875046e0c15643.js"
+      "static/chunks/pages/profile-02cbb50241f6845e.js"
     ],
     "/selectedWorkout": [
       "static/chunks/webpack-04eaacbe836f524f.js",
@@ -89,12 +89,18 @@
       "static/chunks/742-1a0d778dedb6c9d9.js",
       "static/chunks/pages/splash-fb607a681a5065e2.js"
     ],
+    "/workout-finished": [
+      "static/chunks/webpack-04eaacbe836f524f.js",
+      "static/chunks/framework-64ad27b21261a9ce.js",
+      "static/chunks/main-0e6eaf36fa18adef.js",
+      "static/chunks/pages/workout-finished-045cd5dccba6dfa6.js"
+    ],
     "/workout-monitor": [
       "static/chunks/webpack-04eaacbe836f524f.js",
       "static/chunks/framework-64ad27b21261a9ce.js",
       "static/chunks/main-0e6eaf36fa18adef.js",
       "static/chunks/742-1a0d778dedb6c9d9.js",
-      "static/chunks/pages/workout-monitor-3faaad9a1f522d98.js"
+      "static/chunks/pages/workout-monitor-ae655dcf12368cf6.js"
     ],
     "/workouts": [
       "static/chunks/webpack-04eaacbe836f524f.js",

@@ -63,7 +63,7 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
             {
               label: 'High Threshold',
               data: Array(timeData.length).fill(thresholdHigh),
-              borderColor: 'rgba(251, 191, 36, 0.7)', // Amber/yellow - no glow
+              borderColor: 'rgba(251, 191, 36, 0.35)', // Amber/yellow - 50% lower opacity
               backgroundColor: 'transparent',
               borderWidth: 2,
               borderDash: [8, 4], // Dashed line pattern
@@ -74,7 +74,7 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
             {
               label: 'Low Threshold',
               data: Array(timeData.length).fill(thresholdLow),
-              borderColor: 'rgba(34, 211, 238, 0.7)', // Cyan/blue - no glow
+              borderColor: 'rgba(34, 211, 238, 0.35)', // Cyan/blue - 50% lower opacity
               backgroundColor: 'transparent',
               borderWidth: 2,
               borderDash: [8, 4], // Dashed line pattern
@@ -98,21 +98,10 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
             x: {
               display: true,
               title: {
-                display: true,
-                text: 'Time (seconds)',
-                color: 'rgba(255, 255, 255, 0.7)',
-                font: {
-                  size: 12,
-                  weight: '500'
-                }
+                display: false
               },
               ticks: {
-                color: 'rgba(255, 255, 255, 0.5)',
-                maxRotation: 0,
-                autoSkipPadding: 20,
-                font: {
-                  size: 11
-                }
+                display: false
               },
               grid: {
                 color: 'rgba(255, 255, 255, 0.08)',
@@ -122,22 +111,13 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
             y: {
               display: true,
               title: {
-                display: true,
-                text: 'Acceleration (m/s²)',
-                color: 'rgba(255, 255, 255, 0.7)',
-                font: {
-                  size: 12,
-                  weight: '500'
-                }
+                display: false
               },
               ticks: {
-                color: 'rgba(255, 255, 255, 0.5)',
-                font: {
-                  size: 11
-                }
+                display: false
               },
               grid: {
-                color: 'rgba(255, 255, 255, 0.08)',
+                display: false,
                 drawBorder: false
               },
               suggestedMin: 0,
@@ -146,32 +126,7 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
           },
           plugins: {
             legend: {
-              display: true,
-              position: 'top',
-              labels: {
-                color: 'rgba(255, 255, 255, 1)',
-                font: {
-                  size: 12,
-                  weight: '600'
-                },
-                padding: 12,
-                usePointStyle: true,
-                pointStyle: 'line',
-                boxWidth: 30,
-                boxHeight: 2,
-                generateLabels: (chart) => {
-                  const datasets = chart.data.datasets;
-                  return datasets.map((dataset, i) => ({
-                    text: dataset.label,
-                    fillStyle: i === 0 ? 'rgba(168, 85, 247, 1)' : 'transparent',
-                    strokeStyle: i === 0 ? 'rgba(168, 85, 247, 1)' : dataset.borderColor,
-                    lineWidth: i === 0 ? 3 : 2,
-                    lineDash: dataset.borderDash || [],
-                    hidden: !chart.isDatasetVisible(i),
-                    datasetIndex: i
-                  }));
-                }
-              }
+              display: false
             },
             tooltip: {
               enabled: true,

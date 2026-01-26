@@ -225,13 +225,17 @@ export class RepCounter {
     this.repCount++;
     const duration = (endValley.time - startValley.time) / 1000;
     
+    console.log(`✅ REP #${this.repCount} | Duration: ${duration.toFixed(2)}s | Range: ${Math.abs(peak.value - startValley.value).toFixed(2)} m/s²`);
+    
     // Store rep metadata
     this.reps.push({
       repNumber: this.repCount,
       startTime: startValley.time,
       endTime: endValley.time,
       duration: duration,
+      peakAcceleration: peak.value, // Added for compatibility
       peakValue: peak.value,
+      peakVelocity: peak.value / 2, // Estimated velocity
       valleyValue: startValley.value,
       range: Math.abs(peak.value - startValley.value)
     });
