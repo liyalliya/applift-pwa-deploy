@@ -19,16 +19,21 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
         chartRef.current.destroy();
       }
 
-      // Create gradient for the filtered line (purple to pink)
+      // Create gradient for the filtered line (purple gradient)
+      // More evident purple gradient stroke
       const gradientStroke = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
       gradientStroke.addColorStop(0, 'rgba(192, 132, 252, 1)'); // #c084fc
-      gradientStroke.addColorStop(0.5, 'rgba(168, 85, 247, 1)'); // blend
-      gradientStroke.addColorStop(1, 'rgba(147, 51, 234, 1)'); // #9333ea
+      gradientStroke.addColorStop(0.3, 'rgba(168, 85, 247, 1)');
+      gradientStroke.addColorStop(0.7, 'rgba(147, 51, 234, 1)');
+      gradientStroke.addColorStop(1, 'rgba(139, 92, 246, 1)'); // #8b5cf6
 
-      // Create gradient for fill area under the line
+      // More obvious, soft, airy vertical gradient fill
       const gradientFill = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
-      gradientFill.addColorStop(0, 'rgba(192, 132, 252, 0.2)');
-      gradientFill.addColorStop(1, 'rgba(147, 51, 234, 0.05)');
+      gradientFill.addColorStop(0, 'rgba(168, 85, 247, 0.45)'); // Top: solid primary
+      gradientFill.addColorStop(0.15, 'rgba(168, 85, 247, 0.25)');
+      gradientFill.addColorStop(0.4, 'rgba(168, 85, 247, 0.13)');
+      gradientFill.addColorStop(0.7, 'rgba(168, 85, 247, 0.07)');
+      gradientFill.addColorStop(1, 'rgba(168, 85, 247, 0)'); // Bottom: transparent
 
       chartRef.current = new Chart(ctx, {
         type: 'line',
@@ -41,21 +46,22 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
               data: filteredData,
               borderColor: gradientStroke,
               backgroundColor: gradientFill,
-              borderWidth: 3,
+              borderWidth: 7,
               pointRadius: 0,
               tension: 0.4, // Smooth curves
               fill: true,
               shadowOffsetX: 0,
               shadowOffsetY: 0,
-              shadowBlur: 10,
-              shadowColor: 'rgba(168, 85, 247, 0.5)', // Glow effect
+              shadowBlur: 48,
+              shadowColor: 'rgba(168, 85, 247, 0.85)', // Stronger purple glow effect
               segment: {
                 borderColor: ctx => {
                   // Re-create gradient for each segment to maintain smooth gradient
                   const gradient = ctx.chart.ctx.createLinearGradient(0, 0, ctx.chart.width, 0);
                   gradient.addColorStop(0, 'rgba(192, 132, 252, 1)');
-                  gradient.addColorStop(0.5, 'rgba(168, 85, 247, 1)');
-                  gradient.addColorStop(1, 'rgba(147, 51, 234, 1)');
+                  gradient.addColorStop(0.3, 'rgba(168, 85, 247, 1)');
+                  gradient.addColorStop(0.7, 'rgba(147, 51, 234, 1)');
+                  gradient.addColorStop(1, 'rgba(139, 92, 246, 1)');
                   return gradient;
                 }
               }
@@ -104,7 +110,7 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
                 display: false
               },
               grid: {
-                color: 'rgba(255, 255, 255, 0.08)',
+                display: false,
                 drawBorder: false
               }
             },
@@ -117,11 +123,14 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
                 display: false
               },
               grid: {
-                display: false,
+                display: true,
+                color: 'rgba(255, 255, 255, 0.1)',
+                lineWidth: 0.5,
                 drawBorder: false
               },
-              suggestedMin: 0,
-              grace: '10%'
+              min: -2,
+              max: 18,
+              grace: 0
             }
           },
           plugins: {
@@ -165,8 +174,8 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
                 const meta = chart.getDatasetMeta(i);
                 if (!meta.hidden) {
                   ctx.save();
-                  ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
-                  ctx.shadowBlur = 15;
+                  ctx.shadowColor = 'rgba(168, 85, 247, 1)';
+                  ctx.shadowBlur = 30;
                   ctx.shadowOffsetX = 0;
                   ctx.shadowOffsetY = 0;
                   ctx.restore();
@@ -186,8 +195,8 @@ export default function AccelerationChart({ timeData, rawData, filteredData, thr
   }, [timeData, filteredData, thresholdHigh, thresholdLow]);
 
   return (
-    <div className="w-full h-96 sm:h-[28rem] md:h-[36rem]">
-      <canvas ref={canvasRef}></canvas>
+    <div className="absolute inset-0 w-full h-full" style={{ paddingTop: '10px', paddingBottom: '0px' }}>
+      <canvas ref={canvasRef} className="w-full h-full"></canvas>
     </div>
   );
 }

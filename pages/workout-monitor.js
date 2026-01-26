@@ -155,7 +155,7 @@ export default function WorkoutMonitor() {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-white">
+    <div className="relative h-screen w-screen bg-black text-white overflow-hidden">
       <Head>
         <title>Workout Monitor — {workout} — AppLift</title>
       </Head>
@@ -272,12 +272,15 @@ export default function WorkoutMonitor() {
         onDismiss={() => setLastRepNotification(null)}
       />
 
-      <main className="relative mx-auto w-full max-w-4xl px-3 sm:px-4 md:px-6 pt-4 sm:pt-6 space-y-3 sm:space-y-4 h-screen overflow-hidden">
-        {/* Header with back button and connection pill */}
-        <div className="relative z-10 flex items-center justify-between content-fade-up-1">
+      {/* Header with semi-transparent background */}
+      <div className="absolute top-0 left-0 right-0 z-30 px-4 pt-6 pb-4" style={{
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0) 100%)'
+      }}>
+        {/* Top row - Back button and Connection Pill */}
+        <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => router.back()}
-            className="flex items-center justify-center h-10 w-10 rounded-lg hover:bg-white/20 transition-all"
+            className="flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/20 transition-all"
             aria-label="Go back"
           >
             <img
@@ -298,31 +301,32 @@ export default function WorkoutMonitor() {
             availability={availability}
           />
         </div>
-
+        
         {/* Workout Title */}
-        <div className="relative z-10 text-center content-fade-up-2" style={{ animationDelay: '0.05s' }}>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{workout}</h1>
-          <p className="text-xs sm:text-sm text-white/60">{equipment}</p>
+        <div className="text-center">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">{workout}</h1>
+          <p className="text-sm text-white/70">{equipment}</p>
         </div>
+      </div>
+
+      <main className="relative h-full w-full">
 
         {/* Disconnection Warning during session */}
         {!connected && isRecording && (
-          <div className="relative z-10 rounded-xl bg-red-500/20 border border-red-500/50 p-4 text-center animate-pulse content-fade-up-2" style={{ animationDelay: '0.15s' }}>
+          <div className="absolute top-32 left-4 right-4 z-30 rounded-xl bg-red-500/20 backdrop-blur-md border border-red-500/50 p-4 text-center animate-pulse">
             <p className="text-sm text-red-300 font-semibold">⚠️ Device disconnected. Please reconnect to continue session.</p>
           </div>
         )}
 
         {/* Connection Status - Before Starting */}
         {!connected && !isRecording && (
-          <div className="relative z-10 rounded-xl bg-red-500/20 border border-red-500/50 p-4 text-center content-fade-up-2" style={{ animationDelay: '0.15s' }}>
+          <div className="absolute top-32 left-4 right-4 z-30 rounded-xl bg-red-500/20 backdrop-blur-md border border-red-500/50 p-4 text-center">
             <p className="text-sm text-red-300">⚠️ Device not connected. Please connect your IMU device.</p>
           </div>
         )}
 
-        {/* Chart - Full Screen */}
-        <div className="content-fade-up-3 absolute left-0 right-0 top-0 bottom-0" style={{
-          animationDelay: '0.25s'
-        }}>
+        {/* Chart - Full Screen Background */}
+        <div className="absolute inset-0 z-10">
           <AccelerationChart
             timeData={timeData}
             filteredData={filteredAccelData}
@@ -332,29 +336,29 @@ export default function WorkoutMonitor() {
         </div>
       </main>
 
-      {/* Bottom Container - Fixed at bottom - Buttons and Info Cards - Overlay */}
-      <div className="fixed bottom-0 left-0 right-0 px-3 sm:px-4 md:px-6 pb-4 sm:pb-6 pt-2 sm:pt-3 z-20" style={{
-        background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 50%, rgba(0,0,0,0) 100%)',
+      {/* Bottom Container - Frosted Glass Overlay */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-6 pt-8" style={{
+        background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.6) 80%, rgba(0,0,0,0) 100%)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)'
       }}>
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto w-full max-w-lg">
           {/* Bottom Container - Buttons and Info Cards */}
-          <div className="content-fade-up-4" style={{
-              animationDelay: '0.35s'
-            }}>
-              {/* Timer/Start Button Bar */}
-              <div className="p-3 sm:p-4 flex items-center justify-between" >
+          <div>
+            {/* Timer/Start Button Bar */}
+            <div className="flex items-center justify-between mb-3">
                 {!isRecording ? (
                   <button
                     onClick={startRecording}
                     disabled={!connected || !isSubscribed}
-                    className="w-full py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl md:text-2xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-3"
+                    className="w-full py-4 rounded-full font-bold text-white text-xl transition-all disabled:opacity-50 flex items-center justify-center gap-3"
                     style={{
-                      background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
-                      boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
+                      background: 'linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #9333ea 100%)',
+                      boxShadow: '0 8px 24px rgba(147, 51, 234, 0.4)'
                     }}
                   >
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M8 5v14l11-7z"/>
                       </svg>
                     </div>
@@ -365,14 +369,14 @@ export default function WorkoutMonitor() {
                     {!isPaused ? (
                       <button
                         onClick={togglePause}
-                        className="w-full py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl md:text-2xl transition-all flex items-center justify-center gap-2 sm:gap-3"
+                        className="w-full py-4 rounded-full font-bold text-white text-xl transition-all flex items-center justify-center gap-3"
                         style={{
-                          background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
-                          boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
+                          background: 'linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #9333ea 100%)',
+                          boxShadow: '0 8px 24px rgba(147, 51, 234, 0.4)'
                         }}
                       >
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
                           </svg>
                         </div>
@@ -381,14 +385,14 @@ export default function WorkoutMonitor() {
                     ) : (
                       <button
                         onClick={togglePause}
-                        className="w-full py-3 sm:py-4 rounded-full font-bold text-white text-lg sm:text-xl md:text-2xl transition-all flex items-center justify-between px-4 sm:px-6 md:px-8"
+                        className="w-full py-4 rounded-full font-bold text-white text-xl transition-all flex items-center justify-between px-6"
                         style={{
-                          background: 'linear-gradient(to bottom right, #c084fc 0%, #9333ea 100%)',
-                          boxShadow: '0 4px 12px rgba(147, 51, 234, 0.3)'
+                          background: 'linear-gradient(135deg, #c084fc 0%, #a855f7 50%, #9333ea 100%)',
+                          boxShadow: '0 8px 24px rgba(147, 51, 234, 0.4)'
                         }}
                       >
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/20 flex items-center justify-center">
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                           </svg>
                         </div>
@@ -398,9 +402,9 @@ export default function WorkoutMonitor() {
                             e.stopPropagation();
                             stopRecording();
                           }}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-all"
+                          className="w-12 h-12 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-all"
                         >
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <rect x="6" y="6" width="12" height="12"/>
                           </svg>
                         </button>
@@ -410,34 +414,75 @@ export default function WorkoutMonitor() {
                 )}
               </div>
 
-              {/* Info Cards Row - Inside same container */}
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2 pb-3 sm:pb-4">
+              {/* Info Cards Row */}
+              <div className="grid grid-cols-2 gap-3">
                 {/* Rep Count Card */}
-                <div className="rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 relative">
-                  <div className="flex items-center gap-3 sm:gap-4 mb-7 sm:mb-8">
-                    <img src="/images/applift-logo/AppLift_Logo_White.png" alt="AppLift" className="w-6 h-6 sm:w-7 sm:h-7" />
-                    <span className="text-sm sm:text-base font-semibold text-white/90">Reps</span>
+                <div className="rounded-2xl p-4 backdrop-blur-md flex flex-col" style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  aspectRatio: '1.4'
+                }}>
+                  {/* Top Section - Icon and Label */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-full bg-yellow-600/30 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                      </svg>
+                    </div>
+                    <span className="text-base font-semibold text-white/90">Reps</span>
                   </div>
-                  <div className="flex items-baseline gap-1 sm:gap-1.5">
-                    <span className="text-5xl sm:text-6xl font-bold text-white">{repStats.repCount}</span>
-                    <span className="text-2xl sm:text-3xl font-semibold text-white/60">/</span>
-                    <span className="text-3xl sm:text-4xl font-semibold text-white/70">{recommendedReps}</span>
+                  {/* Middle Section - Main Values */}
+                  <div className="flex items-baseline gap-2 mb-auto">
+                    <span className="text-5xl font-extrabold text-white leading-none">{repStats.repCount}</span>
+                    <span className="text-2xl font-semibold text-white/40">/</span>
+                    <span className="text-3xl font-semibold text-white/40">{recommendedReps}</span>
                   </div>
-                  <span className="absolute bottom-2.5 right-2.5 sm:bottom-3.5 sm:right-3.5 text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-purple-500/30 text-purple-200">
-                    {repStats.state.toLowerCase()}
-                  </span>
+                  {/* Bottom Section - Progress Bar (aligned with set card) */}
+                  <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden mt-2">
+                    <div 
+                      className="h-full rounded-full transition-all duration-300 ease-in-out"
+                      style={{
+                        width: `${Math.min((repStats.repCount / recommendedReps) * 100, 100)}%`,
+                        background: 'linear-gradient(90deg, #EAB308 0%, #CA8A04 50%, #A16207 100%)',
+                        boxShadow: '0 0 10px 2px rgba(234, 179, 8, 0.6)'
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Set Card */}
-                <div className="rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex flex-col justify-between">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <span className="text-xl sm:text-2xl">📊</span>
-                    <span className="text-xs sm:text-sm font-semibold text-white/90">Set</span>
+                <div className="rounded-2xl p-2 flex flex-col backdrop-blur-md" style={{
+                  background: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  aspectRatio: '1.4'
+                }}>
+                  {/* Top Section - Icon and Label */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-full bg-blue-500/30 flex items-center justify-center">
+                      <svg className="w-3 h-3 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                    <span className="text-base font-semibold text-white/90">Sets</span>
                   </div>
-                  <div className="flex items-baseline gap-1 sm:gap-1.5">
-                    <span className="text-5xl sm:text-6xl font-bold text-white">{currentSet}</span>
-                    <span className="text-2xl sm:text-3xl font-semibold text-white/60">/</span>
-                    <span className="text-3xl sm:text-4xl font-semibold text-white/70">{recommendedSets}</span>
+                  {/* Middle Section - Main Values */}
+                  <div className="flex items-baseline gap-2 mb-auto">
+                    <span className="text-5xl font-extrabold text-white leading-none">{currentSet}</span>
+                    <span className="text-2xl font-semibold text-white/40">/</span>
+                    <span className="text-3xl font-semibold text-white/40">{recommendedSets}</span>
+                  </div>
+                  {/* Bottom Section - Progress Bar */}
+                  <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden mt-2">
+                    <div 
+                      className="h-full rounded-full transition-all duration-300 ease-in-out"
+                      style={{
+                        width: `${Math.min((currentSet / recommendedSets) * 100, 100)}%`,
+                        background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+                        boxShadow: '0 0 10px 2px rgba(59, 130, 246, 0.6)'
+                      }}
+                    />
                   </div>
                 </div>
               </div>
