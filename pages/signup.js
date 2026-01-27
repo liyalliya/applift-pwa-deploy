@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useUserProfile } from '../utils/userProfileStore'
 import { shouldUseAppMode } from '../utils/pwaInstalled'
+import { signupUser } from '../utils/apiClient'
 
 const steps = [
   { id: 1, label: 'Terms' },
@@ -180,6 +181,15 @@ export default function Signup() {
     if (typeof window === 'undefined') return
     setIsAppMode(shouldUseAppMode())
   }, [])
+
+  // Prevent redirect to dashboard when going back in signup
+  useEffect(() => {
+    if (router.pathname === '/signup' && profile.onboardingCompleted) {
+      // Do not redirect to dashboard unless user is authenticated
+      // Optionally, clear onboardingCompleted if user is not logged in
+      // router.push('/login');
+    }
+  }, [router, profile])
 
   // Step 1: Terms (session-based only, never persisted from profile)
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -639,18 +649,45 @@ export default function Signup() {
     }
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
-    // Final confirmation: everything should already be valid, but recheck account fields for safety
+  async function handleSubmit(e) {
+    e.preventDefault();
     if (!validateAccountStep()) {
-      setStep(2)
-      return
+      setStep(2);
+      return;
     }
-    updateProfile({
+    // Gather all profile data
+    const userData = {
+      email,
+      password,
+      username,
+      gender,
+      birthMonth,
+      birthYear,
+      age,
+      weight,
+      weightUnit,
+      heightFeet,
+      heightInches,
+      heightValue,
+      heightUnit,
+      bmi,
+      bmiCategory,
+      ...questionAnswers,
       onboardingCompleted: true,
       createdAt: profile.createdAt || new Date().toISOString(),
       userId: genUserId(),
-    })
+    };
+    setErrors([]);
+    try {
+      await signupUser(userData);
+      // Optionally, clear sensitive fields
+      setPassword('');
+      setConfirmPassword('');
+      // Redirect to dashboard or login
+      router.push('/dashboard');
+    } catch (err) {
+      setErrors([err.message]);
+    }
   }
 
   const StepHeader = (
@@ -1243,7 +1280,7 @@ You acknowledge the system's limits (e.g., single IMU, equipment-based sensing) 
             <div className="flex justify-between text-sm" style={{ color: 'var(--app-white)' }}>
               <span className="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" style={{ width: '16px', height: '16px' }}>
-                  <path d="M182.4 53.5L157.8 95.6C154 102.1 152 109.6 152 117.2L152 120C152 142.1 169.9 160 192 160C214.1 160 232 142.1 232 120L232 117.2C232 109.6 230 102.2 226.2 95.6L201.6 53.5C199.6 50.1 195.9 48 192 48C188.1 48 184.4 50.1 182.4 53.5zM310.4 53.5L285.8 95.6C282 102.1 280 109.6 280 117.2L280 120C280 142.1 297.9 160 320 160C342.1 160 360 142.1 360 120L360 117.2C360 109.6 358 102.2 354.2 95.6L329.6 53.5C327.6 50.1 323.9 48 320 48C316.1 48 312.4 50.1 310.4 53.5zM413.8 95.6C410 102.1 408 109.6 408 117.2L408 120C408 142.1 425.9 160 448 160C470.1 160 488 142.1 488 120L488 117.2C488 109.6 486 102.2 482.2 95.6L457.6 53.5C455.6 50.1 451.9 48 448 48C444.1 48 440.4 50.1 438.4 53.5L413.8 95.6zM224 224C224 206.3 209.7 192 192 192C174.3 192 160 206.3 160 224L160 277.5C122.7 290.6 96 326.2 96 368L96 388.8C116.9 390.1 137.6 396.1 156.3 406.8L163.4 410.9C189.7 425.9 222.3 424.3 247 406.7C290.7 375.5 349.3 375.5 393 406.7C417.6 424.3 450.3 426 476.6 410.9L483.7 406.8C502.4 396.1 523 390.1 544 388.8L544 368C544 326.2 517.3 290.6 480 277.5L480 224C480 206.3 465.7 192 448 192C430.3 192 416 206.3 416 224L416 272L352 272L352 224C352 206.3 337.7 192 320 192C302.3 192 288 206.3 288 224L288 272L224 272L224 224zM544 437C531.3 438.2 518.9 442 507.5 448.5L500.4 452.6C457.8 476.9 405 474.3 365.1 445.8C338.1 426.5 301.9 426.5 274.9 445.8C235 474.3 182.2 477 139.6 452.6L132.5 448.5C121.1 442 108.7 438.1 96 437L96 512C96 547.3 124.7 576 160 576L480 576C515.3 576 544 547.3 544 512L544 437z"/>
+                  <path d="M182.4 53.5L157.8 95.6C154 102.1 152 109.6 152 117.2L152 120C152 142.1 169.9 160 192 160C214.1 160 232 142.1 232 120L232 117.2C232 109.6 230 102.2 226.2 95.6L201.6 53.5C199.6 50.1 195.9 48 192 48C188.1 48 184.4 50.1 182.4 53.5zM310.4 53.5L285.8 95.6C282 102.1 280 109.6 280 117.2L280 120C280 142.1 297.9 160 320 160C342.1 160 360 142.1 360 120L360 117.2C360 109.6 358 102.2 354.2 95.6L329.6 53.5C327.6 50.1 323.9 48 320 48C316.1 48 312.4 50.1 310.4 53.5zM413.8 95.6C410 102.1 408 109.6 408 117.2L408 120C408 142.1 425.9 160 448 160C470.1 160 488 142.1 488 120L488 117.2C488 109.6 486 102.2 482.2 95.6L457.6 53.5C455.6 50.1 451.9 48 448 48C444.1 48 440.4 50.1 438.4 53.5L413.8 95.6zM224 224C224 206.3 209.7 192 192 192C174.3 192 160 206.3 160 224L160 277.5C122.7 290.6 96 326.2 96 368L96 388.8C116.9 390.1 137.6 396.1 156.3 406.8L163.4 410.9C189.7 425.9 222.3 424.3 247 406.7C290.7 375.5 349.3 375.5 393 406.7C417.6 424.3 450.3 426 476.6 410.9L483.7 406.8C502.4 396.1 523 390.1 544 388.8L544 368C544 326.2 517.3 290.6 480 277.5L480 224C480 206.3 465.7 192 448 192C430.3 192 416 206.3 416 224L416 272L352 272L352 224C352 206.3 337.7 192 320 192C293.3 192 268.5 200.2 248 214.2L208.9 175.1zM390.9 357.1L282.9 249.1C294 243.3 306.6 240 320 240C364.2 240 400 275.8 400 320C400 333.4 396.7 346 390.9 357.1zM135.4 237.2L101.4 203.2C68.8 240 46.4 279 34.5 307.7C31.2 315.6 31.2 324.4 34.5 332.3C49.4 368 80.7 420 127.5 463.4C174.6 507.1 239.3 544 320.1 544C357.4 544 391.3 536.1 421.6 523.4L384.2 486C364.2 492.4 342.8 496 320 496C254.8 496 201.2 466.4 160.1 428.3C121.6 392.6 95 350 81.5 320C91.9 296.9 110.1 266.4 135.5 237.2z" />
                 </svg>
                 Age
               </span>

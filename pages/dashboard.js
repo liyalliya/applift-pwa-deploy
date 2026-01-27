@@ -479,7 +479,7 @@ export default function Dashboard() {
 
               {/* Greetings on upper-left */}
               <div className="flex flex-col leading-tight">
-                <span className="text-2xl sm:text-3xl font-bold text-white">Hello, <span className="text-purple-300">{profile?.name || 'Alliya'}</span>!</span>
+                <span className="text-2xl sm:text-3xl font-bold text-white">Hello, <span className="text-purple-300">{profile?.username || 'User'}</span>!</span>
               </div>
             </div>
 

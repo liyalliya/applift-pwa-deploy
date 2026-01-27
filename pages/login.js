@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useUserProfile } from '../utils/userProfileStore'
 import { shouldUseAppMode } from '../utils/pwaInstalled'
+import { GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
+import { app } from '../config/firebase';
 
 export default function Login() {
   const { profile, updateProfile } = useUserProfile()
@@ -81,6 +83,29 @@ export default function Login() {
 
     // All good -> redirect to dashboard (no backend yet)
     router.push('/dashboard')
+  }
+
+  async function handleGoogleSignIn() {
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const idToken = await result.user.getIdToken();
+      // Call backend to check if user exists and handle redirect
+      const res = await fetch('/api/google-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await res.json();
+      if (data.newUser) {
+        router.push('/signup'); // Redirect to survey/anthropometric page
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      alert('Google sign-in failed: ' + err.message);
+    }
   }
 
   return (
@@ -218,23 +243,17 @@ export default function Login() {
               <span>Sign in</span>
             </button>
 
-            <div className="relative" style={{ margin: 'clamp(0.5rem, 1.5vh, 0.75rem) 0' }}>
-              <div className="absolute inset-0 flex items-center" aria-hidden>
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative text-center text-gray-400" style={{ fontSize: 'clamp(0.7rem, 2.5vw, 0.75rem)' }}>or</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <img src="/images/applift-logo/AppLift_Logo_White.png" alt="AppLift Logo" style={{ height: '48px' }} />
             </div>
-            <button className="w-full inline-flex items-center justify-center rounded-full bg-black/30 text-white border border-white/5" style={{
-              gap: 'clamp(0.5rem, 2vw, 0.75rem)',
-              padding: 'clamp(0.625rem, 2vh, 0.75rem) clamp(0.875rem, 3vw, 1rem)',
-            }} onClick={() => updateProfile({ authProvider: 'google' })}>
-              <svg width="18" height="18" viewBox="0 0 48 48" className="rounded-sm" style={{ width: 'clamp(14px, 4vw, 18px)', height: 'clamp(14px, 4vw, 18px)' }}>
-                <path fill="#EA4335" d="M24 9.5c3.9 0 6.6 1.7 8.6 3.2l6.3-6.1C35.9 3 30.6 1 24 1 14.7 1 6.9 6.2 3 13.9l7.3 5.7C12.9 14.3 17.8 9.5 24 9.5z"/>
-                <path fill="#34A853" d="M46.5 24.5c0-1.6-.1-2.8-.4-4.1H24v8h12.7c-.5 2.6-2.3 6.6-6.7 9l8.3 6.4C43.6 37.4 46.5 31.5 46.5 24.5z"/>
-                <path fill="#4A90E2" d="M10.3 29.6A14.5 14.5 0 0 1 9 24.5c0-1.7.3-3.3.8-4.8L3 13.9C1.1 17.5 0 21.7 0 24.5c0 5.6 2.1 10.5 5.6 14.2l4.7-9.1z"/>
-                <path fill="#FBBC05" d="M24 46.9c6.6 0 12.1-2.2 16.1-6l-8.3-6.4c-2.4 1.6-5.4 2.6-7.8 2.6-6.2 0-11.1-4.8-12.2-11.2L3 34.5C6.9 41.8 14.7 46.9 24 46.9z"/>
-              </svg>
-              <span style={{ fontSize: 'clamp(0.8rem, 2.75vw, 0.875rem)' }}>Sign in with Google</span>
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              className="w-full rounded-full bg-white text-black font-semibold py-2 mb-4 flex items-center justify-center gap-2"
+              style={{ fontSize: 'clamp(0.875rem, 3vw, 1rem)' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.22l6.85-6.85C35.64 2.34 30.13 0 24 0 14.61 0 6.27 5.7 2.44 14.01l7.98 6.21C12.13 13.09 17.62 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.59c0-1.54-.14-3.02-.39-4.45H24v8.44h12.44c-.54 2.9-2.18 5.36-4.64 7.02l7.19 5.59C43.73 37.13 46.1 31.36 46.1 24.59z"/><path fill="#FBBC05" d="M10.42 28.22c-1.13-3.36-1.13-6.97 0-10.33l-7.98-6.21C.64 16.61 0 20.21 0 24c0 3.79.64 7.39 2.44 10.32l7.98-6.1z"/><path fill="#EA4335" d="M24 48c6.13 0 11.64-2.02 15.84-5.5l-7.19-5.59c-2.01 1.35-4.59 2.15-8.65 2.15-6.38 0-11.87-3.59-14.58-8.72l-7.98 6.1C6.27 42.3 14.61 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+              Sign in with Google
             </button>
 
             <div className="text-center" style={{ fontSize: 'clamp(0.8rem, 2.75vw, 0.875rem)', marginTop: 'clamp(0.5rem, 1.5vh, 1rem)' }}>Don't have an account? <Link href="/signup"><a style={{ color: 'var(--app-white)' }}>Sign up</a></Link></div>
